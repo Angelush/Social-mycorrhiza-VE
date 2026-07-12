@@ -44,3 +44,8 @@
 | M6 proposal-only | Enforce | Skip (sim may apply to a copy) | sim mutates a sandbox |
 | N2/N3/N4 anti-surveillance shape | Enforce (reject) | Enforce (reject) | never relax — the defining hazard |
 | E1 forbidden field | Reject | Reject | never measure-only |
+
+## Calibration notes (accepted trade-offs, not bugs)
+- **CAL-1 — the forbidden-key scan (E1) is case-insensitive *substring* matching over dict keys.** One shared decision across all six layers (Capa-1 membrane, Capa-2 legibility, Capa-3 matcher, this engine, Capa-5 stigmergy, Capa-6 governance — held byte-identical by the AC-X cross-layer test), and the same semantics drive the sibling taxonomies (market, reciprocity-ledger, engagement, vote-weight; stems like `_cents`/`denominat` only work as substrings). Substring is deliberately over-broad: a legitimate key like `descripción_del_score_musical` (contains `score`) or a `rank` used in a benign non-person sense (a cordillera) is refused. That is the chosen failure direction in this domain — a false refusal costs one renamed field; a false admit is a surveillance leak (the ST1 over-refuse posture). Two boundaries of the decision:
+  - False *negatives* are not this scan's job: a person-scalar under a benign name (`fertility`) is caught structurally — whitelisted envelope/declaration/trace keys, output-schema closure, the Sim Track-B type wall. The scan is a secondary lint, not the wall.
+  - **Revisit trigger:** when free-form natural-language content starts arriving through Capa 3, false positives on legitimate keys will rise. The remedy then is word-boundary matching or a reviewed benign-collision allowlist — applied to all six layers at once via AC-X, never per-layer, and never silently relaxed below substring.

@@ -52,4 +52,7 @@
 | M6 consent-gated | Enforce | Enforce | non-consenting never surfaced |
 | M8 forgetting | Enforce (drop + stamp) | Enforce | no dossier |
 | N1 no acting | Enforce | Enforce | proposes, human disposes |
+
+## Calibration note
+- **CAL-1** (canonical copy in the root `constraints.md`): the shared forbidden/engagement-key scan is case-insensitive **substring** matching — over-broad by design (`descripción_del_score_musical` is refused for containing `score`); the false positive is the chosen failure direction (ST1). This layer is where the trade-off bites first: once free-form natural-language content flows through the matcher, legitimate keys will collide with the taxonomy more often. That is the revisit trigger — and any recalibration (word-boundary matching / benign allowlist) moves all six layers together through AC-X, never this layer alone.
 </content>

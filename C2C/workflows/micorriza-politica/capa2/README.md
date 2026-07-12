@@ -1,6 +1,6 @@
 # Capa 2 — Trust-Legibility Query ("legibilidad de la confianza")
 
-SpecSmith sub-bundle for **the razor's-edge layer** (brief §4 Capa 2, §6.1): the layer that
+spec sub-bundle for **the razor's-edge layer** (brief §4 Capa 2, §6.1): the layer that
 most easily slides into a surveillance score, built **last and with maximum care** (§7 Etapa 2).
 It answers only the question that stays on the right side of the razor — **"do the people I
 trust vouch for X, here, now?"** — as a web-of-trust query evaluated **from the asker's

@@ -1,6 +1,6 @@
 # Capa 6 — Sociocratic Governance (consent, not consensus)
 
-SpecSmith sub-bundle for the `[HUMANO → CONSENT-NOT-CONSENSUS]` layer (brief §4 Capa 6, invariant 7,
+spec sub-bundle for the `[HUMANO → CONSENT-NOT-CONSENSUS]` layer (brief §4 Capa 6, invariant 7,
 architecture.md: *Not an agent. Consent-not-consensus; voice independent of reputation*). It resolves
 **one proposal in one local circle** by **consent — the absence of a paramount (reasoned) objection —
 not by consensus, and not by majority** (lineage: Haudenosaunee Great Law of Peace, Quaker meeting,

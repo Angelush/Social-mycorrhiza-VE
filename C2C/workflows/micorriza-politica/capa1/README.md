@@ -1,6 +1,6 @@
 # Capa 1 — Relational-Mode Partition ("las habitaciones")
 
-SpecSmith sub-bundle for the **most important layer** (brief §4 Capa 1): the
+spec sub-bundle for the **most important layer** (brief §4 Capa 1): the
 architectural membrane that keeps market logic out of the gift and equality rooms
 (invariant 1, the kula/gimwali wall). It is the `[INVARIANTE ARQUITECTÓNICA]` firewall /
 type-system every other layer routes through.

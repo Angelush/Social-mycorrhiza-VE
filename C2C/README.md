@@ -2,7 +2,7 @@
 
 Implementation of the social design synthesis in
 [`micorriza-politica-brief-social.md`](micorriza-politica-brief-social.md),
-built via the SpecSmith spec-engineering harness + multi-model orchestration.
+built with a spec-driven engineering method (an intent/context/architecture/spec/constraints/failure-model/evals bundle).
 Sibling of the B2B variant (`../B2B`).
 
 > **North star (brief §0):** infrastructure for a literate society to organize
@@ -18,7 +18,7 @@ Sibling of the B2B variant (`../B2B`).
 ## Layout
 ```
 micorriza-politica-brief-social.md   # the source design brief (social branch)
-workflows/micorriza-politica/        # SpecSmith bundle (upstream: what to build + how to know it's right)
+workflows/micorriza-politica/        # spec bundle (upstream: what to build + how to know it's right)
   architecture.md  intent.md  context.md  spec.md  constraints.md   # spec.md etc. = Capa-4
   evals/{acceptance,tests}.md  evals/golden-set/*.json
   failure-model.md  audit.md  README.md  .specsmith.json
@@ -44,7 +44,7 @@ tests/                               # acceptance + property + golden-set + cros
 ```
 
 ## Build status (sequencing per brief §7)
-- [x] SpecSmith bundle (Deep route)
+- [x] spec bundle (Deep route)
 - [x] **Capa-4 assurance-contract / quorum engine** — "I do it if N others do,"
       with exact sponsor-bonus distribution on failure (dominant assurance
       contract, Tabarrok). No LLM, integer cents, deterministic, proposal-only,

@@ -1,6 +1,6 @@
 # Capa 5 — Stigmergic Coordination + Anti-Cascade Circuit Breakers
 
-SpecSmith sub-bundle for the `[PROTOCOLO + CIRCUIT BREAKERS]` layer (brief §4 Capa 5, invariant 9,
+spec sub-bundle for the `[PROTOCOLO + CIRCUIT BREAKERS]` layer (brief §4 Capa 5, invariant 9,
 architecture.md: *Not an agent. Friction/rate-limits on propagation*). It **senses** the
 environmental traces visible from **one cell** — contribution histories, paths, artifacts, signals —
 applies **pheromone evaporation** (forgetting), and enforces the **anti-cascade circuit breakers** so

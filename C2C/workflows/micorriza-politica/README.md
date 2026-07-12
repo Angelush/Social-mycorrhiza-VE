@@ -8,7 +8,7 @@ Turn the social design synthesis in `micorriza-politica-brief-social.md` into a 
 ## How to run it
 1. Load `context.md` (domain, negative anchor, terminology).
 2. Read `spec.md` + `constraints.md` for the component being built.
-3. Build via the multi-model-orchestration harness (free models execute, Claude reviews).
+3. Build against the bundle, with review one tier above the executor.
 4. Review every output against `evals/acceptance.md`; re-run `evals/golden-set/` on any change.
 
 ## The interaction pattern (what transfers)
@@ -18,7 +18,7 @@ The non-negotiable correction you keep making: **"this must not become a score."
 Claude reviews free-model output against the six acceptance criteria. The two things most likely to be wrong: (1) the **anti-surveillance shape** — a stray score/reputation/persistence field, or accepting a forbidden input (AC5); (2) **no-loss / bonus conservation** broken by float or a bad remainder split (AC2/AC3).
 
 ## Build status
-- [x] SpecSmith upstream bundle (architecture, intent, context, spec, constraints, evals, red-team, audit)
+- [x] upstream spec bundle (architecture, intent, context, spec, constraints, evals, red-team, audit)
 - [x] **Capa-4 assurance-contract engine** — `src/assurance/assurance_engine.py`. Drafted by a free model (orchestrated), reviewed + corrected by Claude. Tests in `tests/`.
 - [ ] Relational-mode partition ("las habitaciones," Capa 1) as a type-system/firewall — §7 Etapa 1
 - [ ] Trust-legibility query (Capa 2) and LLM matcher (Capa 3) — §7 Etapa 2–3, last and with maximum care

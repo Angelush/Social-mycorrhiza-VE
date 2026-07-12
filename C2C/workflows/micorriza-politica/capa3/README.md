@@ -1,6 +1,6 @@
 # Capa 3 — Prosocial-Affordance Matcher ("el emparejador")
 
-SpecSmith sub-bundle for **the first LLM in the stack** (brief §4 Capa 3, invariant 8,
+spec sub-bundle for **the first LLM in the stack** (brief §4 Capa 3, invariant 8,
 architecture.md: *Species 2 / Tool-assistant, NOT Dark Factory, capped at proposal level per
 FWK-030*). It surfaces, for an asker and within that asker's own declared cells, a **bounded list
 of candidate matches**, each with a **human-readable reason** — "who near you needs what you

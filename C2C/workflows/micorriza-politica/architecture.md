@@ -24,7 +24,7 @@ Classify per component. The defining design move (inversion of Chinese social cr
 | Capa 7 — Sustrato simbólico | `[HUMANO · PLURAL]` | Not an agent. Multiple opt-in symbol layers; never one imposed. | Humans |
 
 ## The build harness (how WE build this)
-**Species 1b — Coding Harness (Project).** Human is the manager; judgment is the gate. File-level agent tasks, reviewer one tier above executor (multi-model-orchestration: free model executes, Claude reviews). Two-tier planner→worker, no 3+ layers (AGD-008).
+**Species 1b — Coding Harness (Project).** Human is the manager; judgment is the gate. File-level agent tasks, reviewer one tier above executor. Two-tier planner→worker, no 3+ layers (AGD-008).
 
 ## Complexity-floor gate (FWK-004 / FWK-030)
 - The assurance-contract engine is **deliberately the lowest rung**: deterministic threshold + integer-cent arithmetic, no ML, no LLM, no reputation. Adding an LLM here would invite exactly the score/optimization creep the brief forbids.

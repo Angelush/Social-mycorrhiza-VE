@@ -65,14 +65,14 @@ See each sub-directory's `README.md` for architecture and run details.
 ## Repository layout
 
 ```
-B2B/   mutual-credit clearing system (brief + SpecSmith bundle + src + tests)
+B2B/   mutual-credit clearing system (brief + spec bundle + src + tests)
 C2C/   social C2C/B2C/C2B protocol (layered: partition, legibility, matcher, assurance, stigmergy)
 Sim/   simulation harness driving the real B2B + C2C code, with an auto-research loop
 ```
 
-All three were built with the same method: a **SpecSmith** spec-engineering bundle
-(intent / context / architecture / spec / constraints / failure-model / evals) plus
-multi-model orchestration, then verified against acceptance, property, and golden-set tests.
+All three were built with the same method: a **spec-engineering bundle**
+(intent / context / architecture / spec / constraints / failure-model / evals),
+then verified against acceptance, property, and golden-set tests.
 
 ---
 

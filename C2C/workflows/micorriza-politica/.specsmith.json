@@ -1,0 +1,19 @@
+{
+  "specsmith_version": "0.1.0",
+  "created": "2026-06-26",
+  "slug": "micorriza-politica",
+  "route_profile": "deep",
+  "skills_run": [
+    "orient", "classify-architecture", "engineer-intent", "build-context",
+    "engineer-spec", "author-constraints", "design-evals", "red-team",
+    "audit-feedback-loop", "capture-habit"
+  ],
+  "agent_species": "hybrid (human-dominant)",
+  "species_detail": "multi-species: Capa4 deterministic assurance-contract engine (no LLM, no score), Capa2 trust-legibility query (built last), Capa3 LLM matcher proposal-only, governance/symbol/cells human; build harness 1b coding-harness",
+  "kb_linked": true,
+  "kb_version": "Nate B. Jones KB bundled at specsmith/knowledge/kb",
+  "target_model": "n/a (Capa-4 is deterministic code, no LLM, no person-score by design — invariants 1/2/6)",
+  "source_brief": "micorriza-politica-brief-social.md",
+  "sibling_bundle": "../../../B2B/workflows/micorriza (B2B clearing — explicitly NOT ported here, brief §2.1)",
+  "build_harness": "multi-model-orchestration (free-model executor, Claude reviewer)"
+}

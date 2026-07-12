@@ -1,0 +1,26 @@
+{
+  "input": {
+    "campaign_id": "campA",
+    "cell_id": "barrio-1",
+    "kind": "binary",
+    "threshold": 3,
+    "sponsor_bonus_cents": 0,
+    "expires_at": "2026-12-31T00:00:00Z",
+    "pledges": [
+      {"pledge_id": "p1", "participant_token": "t1"},
+      {"pledge_id": "p2", "participant_token": "t2"},
+      {"pledge_id": "p3", "participant_token": "t3"},
+      {"pledge_id": "p4", "participant_token": "t4"}
+    ]
+  },
+  "expected": {
+    "campaign_id": "campA",
+    "cell_id": "barrio-1",
+    "status": "fires",
+    "distinct_committers": 4,
+    "threshold": 3,
+    "expires_at": "2026-12-31T00:00:00Z",
+    "resolution": {"fires": {"total_pledged_cents": 0}, "refunds": []},
+    "audit_trace": {"rule": "distinct_committers >= threshold", "deduped_from_pledges": 4}
+  }
+}

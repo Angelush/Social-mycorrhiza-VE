@@ -1,0 +1,43 @@
+{
+  "note": "AC5c — two campaigns sharing participant_token t1 resolve independently; neither output may contain any cross-campaign aggregate or per-person score.",
+  "campaign_1": {
+    "input": {
+      "campaign_id": "campC1", "cell_id": "barrio-2", "kind": "binary",
+      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
+      "pledges": [
+        {"pledge_id": "p1", "participant_token": "t1"},
+        {"pledge_id": "p2", "participant_token": "t9"}
+      ]
+    },
+    "expected_status": "fires"
+  },
+  "campaign_2": {
+    "input": {
+      "campaign_id": "campC2", "cell_id": "barrio-3", "kind": "binary",
+      "threshold": 4, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
+      "pledges": [
+        {"pledge_id": "p1", "participant_token": "t1"},
+        {"pledge_id": "p2", "participant_token": "t5"}
+      ]
+    },
+    "expected_status": "refunds"
+  },
+  "rejected_inputs": {
+    "forbidden_field": {
+      "campaign_id": "campC_bad", "cell_id": "barrio-2", "kind": "monetary",
+      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
+      "global_score": {"t1": 0.9},
+      "pledges": [{"pledge_id": "p1", "participant_token": "t1", "amount_cents": 100}]
+    },
+    "membrane_breach_priced_binary": {
+      "campaign_id": "campC_bad2", "cell_id": "barrio-2", "kind": "binary",
+      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
+      "pledges": [{"pledge_id": "p1", "participant_token": "t1", "amount_cents": 500}]
+    },
+    "bonus_on_binary": {
+      "campaign_id": "campC_bad3", "cell_id": "barrio-2", "kind": "binary",
+      "threshold": 2, "sponsor_bonus_cents": 500, "expires_at": "2026-12-31T00:00:00Z",
+      "pledges": [{"pledge_id": "p1", "participant_token": "t1"}]
+    }
+  }
+}

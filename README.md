@@ -1,91 +1,99 @@
-# Micorriza 🍄
+# Micorriza VE 🍄
 
-**Coordination-and-distribution infrastructure for an era of cheap creation.**
+**Fork Venezuela de [Social-mycorrhiza](https://github.com/Angelush/Social-mycorrhiza):
+infraestructura de coordinación y distribución, recalibrada para un entorno donde la banca,
+los tribunales y el Estado no cumplen su función.**
 
-When creating things becomes cheap (because AI does the making), the scarce and valuable
-work moves elsewhere: *coordination, ownership, trust, and governance*. Micorriza is a set
-of designs and reference implementations for that layer. The discipline throughout is a
-single separation of concerns:
+La corrección en una frase: los argumentos anti-TOKEN del diseño original eran universales y
+se mantienen — reforzados por el precedente Petro/Sunacrip —; los argumentos anti-RIELES-cripto
+eran contingentes a la UE (MiCA, banca funcional) y en Venezuela se **invierten**: allí los
+rieles cripto son la infraestructura de pagos que funciona y la banca es la capa rota.
+**Cripto como fontanería, nunca como promesa.** Sigue sin emitirse token alguno.
 
-> The AI does the **solver / matching** work.
-> The human-cooperative layer holds **ownership, trust, and governance**.
-> The agent *proposes*; a human *disposes*. The one-way door over value never opens
-> inside the loop.
+La disciplina heredada no se negocia:
 
-This is not "a more powerful AI" and not "a blockchain." It is the institution that
-distributes what cheap creation produces.
-
----
-
-## The three parts
-
-| Directory | What it is | Status |
-|-----------|-----------|--------|
-| [`B2B/`](B2B/) | **Mutual-credit clearing** between businesses — net obligations in EUR with no bank, no token, no chain. Deterministic solver *proposes*; a human-gated ledger *disposes*. | ✅ Built · 128/128 tests |
-| [`C2C/`](C2C/) | **Social protocol** for a society to cooperate *across its differences*. Built so the parts that *cannot become a surveillance score* come first; legibility comes last, with care (an inversion of social-credit scoring). | ✅ Core layers built |
-| [`Sim/`](Sim/) | **Simulation harness** that drives the **real** B2B and C2C code with populations of good / neutral / bad actors in a Karpathy-style auto-research loop — a driver and oracle, never a second copy of the mechanism. | ✅ Built · 120/120 tests |
-
-Each part has its own detailed `README.md` and a source design brief.
+> La IA hace el trabajo de **solver / emparejamiento**.
+> La capa humana-cooperativa retiene **propiedad, confianza y gobernanza**.
+> El agente *propone*; un humano *dispone*. La puerta de un solo sentido sobre el valor
+> jamás se abre dentro del loop.
 
 ---
 
-## Design principles
+## Las tres partes
 
-- **Proposer / disposer split.** The AI proposes; deterministic, human-gated code decides.
-  The irreversible "one-way door" over real value is never automated.
-- **Invariants are headlines, not averages.** A violated invariant halts a run; it is never
-  averaged into a pass rate.
-- **Fertility over efficiency (social branch).** The goal is conditions under which trust and
-  cooperation reproduce themselves — gardener, not engineer.
-- **Anti-surveillance by construction.** Build what *can't* become a score first; add
-  legibility last.
-- **Test against reality.** Simulations drive the real systems under test — never mocks.
+| Directorio | Qué es | Estado |
+|---|---|---|
+| [`B2B/`](B2B/) | **Crédito mutuo con clearing multilateral** entre empresas — obligaciones netas SIN banco, sin token, sin cadena en la ruta de liquidación. Por adaptar: USD como unidad de cuenta, pista VES con expiración, ledger hash-encadenado, visibilidad restringida (anexo §8) | ✅ heredado, 128/128 tests · 🔜 adaptación VE (Fase 2) |
+| [`C2C/`](C2C/) | **Protocolo social** para cooperar a través de las diferencias, construido para que lo que *no puede volverse un score de vigilancia* venga primero. Por adaptar: castellano total, doble moneda USD/VES sin conversión, tres modos de calibración con trinquete | ✅ heredado, 293/293 tests · 🔜 adaptación VE (Fase 1) |
+| [`Sim/`](Sim/) | **Harness de simulación** que maneja el código REAL B2B y C2C con poblaciones de actores buenos/neutros/malos — driver y oráculo, jamás una segunda copia del mecanismo | ✅ heredado, 121/121 tests · 🔜 adaptación VE (Fase 3) |
 
----
+A diferencia del repo original publicado, **este fork contiene los tres árboles completos**
+(el upstream publicó `B2B/` y `Sim/` como punteros de submódulo rotos; aquí son archivos
+regulares y las tres suites corren de un clon limpio).
 
-## Quick start
+## Los documentos fundacionales y la hoja de ruta
 
-Each sub-project is a self-contained Python package sharing one virtualenv at the repo root.
+| Documento | Qué contiene |
+|---|---|
+| [`C2C/prompt-fork-venezuela.md`](C2C/prompt-fork-venezuela.md) | El prompt ejecutable del workstream C2C-VE: los 10 intocables, áreas §A–§I (taxonomías bilingües por tokens, escaneo de valores de identidad, modos `paz`/`catastrofe_acotada`/`catastrofe_severa`, doble moneda, convergencia en desastre) |
+| [`B2B/micorriza-b2b-venezuela-adaptacion.md`](B2B/micorriza-b2b-venezuela-adaptacion.md) | La auditoría decisión por decisión del sesgo UE (qué se mantiene, qué se invierte), el contexto operativo venezolano verificado (jul-2026), la arquitectura corregida y los 10 deltas accionables |
+| [`workflows/micorriza-ve/`](workflows/micorriza-ve/) | **La hoja de ruta**: paquete de especificación completo (intención, contexto, constraints con porqués, grafo de tareas por fases, criterios de aceptación, modelo de fallos, auditoría del lazo) |
+
+**Estado del build:** Fase 0 (fundación) ✅ — Fases 1–3 (C2C-VE → B2B-VE → Sim-VE) por
+ejecutar según [`workflows/micorriza-ve/tasks.md`](workflows/micorriza-ve/tasks.md).
+
+## Principios de diseño (los heredados + los del contexto VE)
+
+- **Propone/dispone.** La IA propone; código determinista con puerta humana decide. La puerta
+  de un solo sentido sobre valor real jamás se automatiza.
+- **Cero tokens, cero especulación.** El crédito es un registro de compensación, no un activo.
+  El precedente Petro no era una anomalía: era la lección universal con acento local.
+- **Anti-vigilancia por construcción.** Ningún escalar global de persona; el tipo de cambio es
+  **irrepresentable** en los motores (no existe "el" tipo de cambio en Venezuela — cualquier
+  tasa en código es una decisión política incrustada).
+- **El saldo no es público.** Un libro público de saldos es un mapa de extorsión; la
+  visibilidad queda restringida al comité de crédito y todo export público va seudonimizado.
+- **La formalidad es un dial, no un default.** Las células son cámaras y gremios que ya
+  confían entre sí; sin registro estatal como requisito, sin integración con canales estatales
+  de identidad o denuncia.
+- **Probar contra la realidad.** Las simulaciones manejan los sistemas reales bajo prueba —
+  jamás mocks; una invariante violada detiene la corrida, nunca se promedia.
+- **Señalado, no falsamente resuelto.** Lo que el código no puede garantizar se declara
+  abiertamente con su porqué.
+
+## Inicio rápido
+
+Cada subproyecto es un paquete Python autocontenido; un solo virtualenv en la raíz.
 
 ```bash
-# one-time setup
+# preparación (una vez)
 python3 -m venv .venv
 .venv/bin/pip install pytest hypothesis networkx
 
-# run each suite
+# las tres suites
 (cd B2B && ../.venv/bin/python -m pytest tests -q)   # 128 tests
-(cd C2C && ../.venv/bin/python -m pytest tests -q)
-(cd Sim && ../.venv/bin/python -m pytest tests -q)   # 120 tests
+(cd C2C && ../.venv/bin/python -m pytest tests -q)   # 293 tests
+(cd Sim && ../.venv/bin/python -m pytest tests -q)   # 121 tests
 ```
 
-See each sub-directory's `README.md` for architecture and run details.
+## Relación con el upstream
 
----
+Fork de [`Angelush/Social-mycorrhiza`](https://github.com/Angelush/Social-mycorrhiza) con
+historia completa; el remoto `upstream` apunta al original y la política de sincronización
+vive en `workflows/micorriza-ve/tasks.md` (TP.2). El derecho a bifurcar es un invariante del
+protocolo (intocable 9): este repo es su ejercicio.
 
-## Repository layout
+## Licencias
 
-```
-B2B/   mutual-credit clearing system (brief + spec bundle + src + tests)
-C2C/   social C2C/B2C/C2B protocol (layered: partition, legibility, matcher, assurance, stigmergy)
-Sim/   simulation harness driving the real B2B + C2C code, with an auto-research loop
-```
+Doble licencia heredada — ver [`LICENSE.md`](LICENSE.md):
 
-All three were built with the same method: a **spec-engineering bundle**
-(intent / context / architecture / spec / constraints / failure-model / evals),
-then verified against acceptance, property, and golden-set tests.
+- **Código** → [GNU GPL v3.0](LICENSE-GPLv3)
+- **Contenido y docs** → [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0)
 
----
+Ambas copyleft con términos de compartir-igual.
 
-## License
+## Contribuir
 
-Dual-licensed — see [`LICENSE.md`](LICENSE.md):
-
-- **Code** → [GNU GPL v3.0](LICENSE-GPLv3)
-- **Content & docs** → [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0)
-
-Both are copyleft with share-alike terms.
-
-## Contributing
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). By contributing you agree your code is licensed
-under GPLv3 and your documentation under CC BY-SA 4.0.
+Ver [`CONTRIBUTING.md`](CONTRIBUTING.md) (castellanización pendiente — tarea TP.4). Al
+contribuir aceptas que tu código se licencia bajo GPLv3 y tu documentación bajo CC BY-SA 4.0.
+Idioma de trabajo del fork: **castellano**.

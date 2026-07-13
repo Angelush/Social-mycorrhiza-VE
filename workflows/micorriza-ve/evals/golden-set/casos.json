@@ -1,0 +1,44 @@
+{
+  "_nota": "Pares canonicos entrada->salida del fork VE. Se convierten en tests ejecutables en TA.2/TA.5/TA.6/TB.2 y se re-corren ante cualquier cambio de modelo o de taxonomia. Todo vector con forma de identidad es SINTETICO (N8).",
+  "tokenizacion": [
+    { "clave": "bancoDeTiempo", "tokens": ["banco", "de", "tiempo"], "veredicto": "admitida", "porque": "token exacto: ninguna colision; era falso positivo substring ('ban')" },
+    { "clave": "banco_de_tiempo", "tokens": ["banco", "de", "tiempo"], "veredicto": "admitida", "porque": "AC-T1: el test que define el fix" },
+    { "clave": "zona_urbana", "tokens": ["zona", "urbana"], "veredicto": "admitida", "porque": "regresion: 'ban' era substring de 'urbana'" },
+    { "clave": "underscore", "tokens": ["underscore"], "veredicto": "admitida", "porque": "regresion: 'score' era substring" },
+    { "clave": "puntuación", "tokens": ["puntuacion"], "veredicto": "rechazada", "porque": "NFD elimina diacriticos; token en CLAVES_PROHIBIDAS" },
+    { "clave": "puntuacion", "tokens": ["puntuacion"], "veredicto": "rechazada", "porque": "variante sin tilde, mismo token" },
+    { "clave": "lista_negra_local", "tokens": ["lista", "negra", "local"], "veredicto": "rechazada", "porque": "bigrama lista+negra sobre tokens adyacentes" },
+    { "clave": "descripcion_del_score_musical", "tokens": ["descripcion", "del", "score", "musical"], "veredicto": "rechazada", "porque": "direccion de fallo CAL-1 conservada: 'score' es token presente" },
+    { "clave": "denominacion", "tokens": ["denominacion"], "veredicto": "rechazada", "porque": "M6 expansion de raices: 'denominat' solo funcionaba como substring; variante enumerada explicita" },
+    { "clave": "rango_de_fechas", "tokens": ["rango", "de", "fechas"], "veredicto": "admitida", "porque": "regresion: 'rank' ya no matchea por substring ('rango' != 'rank')" }
+  ],
+  "valores_identidad": [
+    { "valor": "V-12.345.678", "patron": "cedula", "veredicto": "rechazado", "nota": "sintetico" },
+    { "valor": "V12345678", "patron": "cedula", "veredicto": "rechazado", "nota": "sin puntos ni guion; sintetico" },
+    { "valor": "J-12345678-9", "patron": "rif", "veredicto": "rechazado", "nota": "sintetico" },
+    { "valor": "0412-1234567", "patron": "telefono", "veredicto": "rechazado", "nota": "sintetico; forma 0+4xx+7" },
+    { "valor": "+58 412 1234567", "patron": "telefono", "veredicto": "rechazado", "nota": "caso que el patron EXACTO de TA.2 debe cubrir (el aproximado del prompt no cubre el espacio)" },
+    { "valor": "V-2026", "patron": null, "veredicto": "admitido", "porque": "no alcanza la forma de cedula (7-8 digitos)" },
+    { "valor": "expediente 12.345.678 del archivo", "patron": null, "veredicto": "decision_TA.2", "porque": "numero con puntos SIN prefijo V/E: fijar en el patron exacto si la forma sin letra cuenta como cedula; documentar FP/FN residual (P1)" }
+  ],
+  "conservacion_ves": {
+    "bono_centimos": "123456789012345",
+    "participantes": 7,
+    "regla": "la suma de repartos es EXACTAMENTE igual al bono; el resto se distribuye deterministicamente (mismo input -> mismo reparto byte a byte)",
+    "porque": "hiperinflacion: enteros de 15+ digitos sin perdida (M4)"
+  },
+  "trinquete": [
+    { "de": "paz", "a": "catastrofe_severa", "decision_capa6": null, "valido": true, "porque": "escalada unilateral inmediata, salto directo permitido" },
+    { "de": "paz", "a": "catastrofe_acotada", "decision_capa6": null, "valido": true, "porque": "escalada" },
+    { "de": "catastrofe_severa", "a": "paz", "decision_capa6": null, "valido": false, "porque": "desescalada exige decision adoptada" },
+    { "de": "catastrofe_severa", "a": "catastrofe_acotada", "decision_capa6": "revisar", "valido": false, "porque": "'revisar' no es 'adoptada': el trinquete no cede ante decisiones tibias" },
+    { "de": "catastrofe_severa", "a": "paz", "decision_capa6": "adoptada", "valido": true, "porque": "consentimiento sin objecion primordial" }
+  ],
+  "b2b_scoping": [
+    { "sistema": "B2B", "clave": "saldo", "veredicto": "admitida", "porque": "vocabulario nuclear del ledger (M5/R3)" },
+    { "sistema": "B2B", "clave": "credito", "veredicto": "admitida", "porque": "idem" },
+    { "sistema": "B2B", "clave": "cedula", "veredicto": "rechazada", "porque": "B2B SI hereda vigilancia/identidad" },
+    { "sistema": "B2B", "clave": "tasa_de_cambio", "veredicto": "rechazada", "porque": "FX irrepresentable tambien en B2B (N3)" },
+    { "sistema": "C2C-capa1", "clave": "saldo_de_favores", "sala": "don_comunal", "veredicto": "rechazada", "porque": "CLAVES_LIBRO_RECIPROCIDAD vive en C2C" }
+  ]
+}

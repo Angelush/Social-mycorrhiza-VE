@@ -1,0 +1,31 @@
+{
+  "bundle": "micorriza-ve",
+  "fecha": "2026-07-13",
+  "ruta": "deep",
+  "pasos_ejecutados": [
+    "orient (diagnostico y ruta)",
+    "classify-architecture",
+    "engineer-intent",
+    "build-context",
+    "engineer-spec",
+    "author-constraints",
+    "decompose-tasks",
+    "design-evals",
+    "red-team",
+    "simulate",
+    "audit-feedback-loop",
+    "capture-habit"
+  ],
+  "pasos_omitidos": {
+    "optimize": "no hay variantes de prompt que puntuar: el prompt de produccion ES el documento fundacional, area por area",
+    "style-profile": "artefacto personal del operador; no se publica en el repo"
+  },
+  "modelo": "claude-fable-5",
+  "base_de_conocimiento": "principles-core (8 axiomas)",
+  "entradas": [
+    "C2C/prompt-fork-venezuela.md",
+    "B2B/micorriza-b2b-venezuela-adaptacion.md",
+    "upstream Angelush/Social-mycorrhiza @ 76519ab (incl. CAL-1)"
+  ],
+  "verificacion_fase_0": "B2B 128/128 · C2C 293/293 · Sim 121/121"
+}

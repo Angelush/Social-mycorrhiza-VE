@@ -1,0 +1,18 @@
+{
+  "specsmith_version": "0.1.0",
+  "created": "2026-06-26",
+  "slug": "micorriza",
+  "route_profile": "deep",
+  "skills_run": [
+    "orient", "classify-architecture", "engineer-intent", "build-context",
+    "engineer-spec", "author-constraints", "design-evals", "red-team",
+    "audit-feedback-loop", "capture-habit"
+  ],
+  "agent_species": "hybrid",
+  "species_detail": "multi-species: Capa1 deterministic (no LLM), Capa2 LLM tool-assistant proposal-only, governance human; build harness 1b coding-harness",
+  "kb_linked": true,
+  "kb_version": "Nate B. Jones KB bundled at specsmith/knowledge/kb",
+  "target_model": "n/a (Layer-1 is deterministic code, no LLM on value path — invariant 1)",
+  "source_brief": "micorriza-brief-diseno.md",
+  "build_harness": "multi-model-orchestration (devstral-small executor, Claude reviewer)"
+}

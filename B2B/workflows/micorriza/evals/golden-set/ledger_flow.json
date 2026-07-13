@@ -1,0 +1,7 @@
+{
+  "description": "Flow A (tests-ledger.md): create cell1, vet A-D, record o1-o4, apply solver clearing, settle o1 by 2500. Pins the byte-exact outcome of the full pilot cycle.",
+  "final_state_sha256": "3449a81d4b2523fe44f926e36461f3cd941c0497da186459d68c6c1228b0a7a1",
+  "head_hash": "a2505cd0888306d2cb1bc08d6a50a4121861d4d2eaa01d16877afaaef0b9c1da",
+  "seq": 11,
+  "gross_open_cents": 8000
+}

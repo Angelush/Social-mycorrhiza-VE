@@ -23,7 +23,7 @@ distributes what cheap creation produces.
 |-----------|-----------|--------|
 | [`B2B/`](B2B/) | **Mutual-credit clearing** between businesses — net obligations in EUR with no bank, no token, no chain. Deterministic solver *proposes*; a human-gated ledger *disposes*. | ✅ Built · 128/128 tests |
 | [`C2C/`](C2C/) | **Social protocol** for a society to cooperate *across its differences*. Built so the parts that *cannot become a surveillance score* come first; legibility comes last, with care (an inversion of social-credit scoring). | ✅ Core layers built |
-| [`Sim/`](Sim/) | **Simulation harness** that drives the **real** B2B and C2C code with populations of good / neutral / bad actors in a Karpathy-style auto-research loop — a driver and oracle, never a second copy of the mechanism. | ✅ Built · 120/120 tests |
+| [`Sim/`](Sim/) | **Simulation harness** that drives the **real** B2B and C2C code with populations of good / neutral / bad actors in a Karpathy-style auto-research loop — a driver and oracle, never a second copy of the mechanism. | ✅ Built · 121/121 tests |
 
 Each part has its own detailed `README.md` and a source design brief.
 
@@ -55,7 +55,7 @@ python3 -m venv .venv
 # run each suite
 (cd B2B && ../.venv/bin/python -m pytest tests -q)   # 128 tests
 (cd C2C && ../.venv/bin/python -m pytest tests -q)
-(cd Sim && ../.venv/bin/python -m pytest tests -q)   # 120 tests
+(cd Sim && ../.venv/bin/python -m pytest tests -q)   # 121 tests
 ```
 
 See each sub-directory's `README.md` for architecture and run details.

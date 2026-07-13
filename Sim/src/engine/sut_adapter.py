@@ -16,10 +16,11 @@ class SUTIntegrityError(Exception):
 class SutPin:
     content_hash: str
     source_paths: tuple[str, ...]
-    # Optional supplementary metadata only: a commit id alone would miss uncommitted
-    # edits (the harness's own negative-control tests run against deliberately
-    # modified SUT copies) and not every domain's SUT lives in a git repo at all.
-    # content_hash is the real, load-bearing pin.
+    # Optional supplementary metadata only: the enclosing repository's HEAD (git
+    # discovers it upward from repo_dir; None outside any repo). A commit id alone
+    # would miss uncommitted edits (the harness's own negative-control tests run
+    # against deliberately modified SUT copies), so content_hash is the real,
+    # load-bearing pin.
     git_commit: str | None
 
 
@@ -32,7 +33,7 @@ def compute_pin(source_paths: Sequence[str | Path], repo_dir: str | Path | None 
         hasher.update(path.encode("utf-8") + b"\x00" + file_bytes + b"\x00")
 
     git_commit: str | None = None
-    if repo_dir is not None and (Path(repo_dir) / ".git").exists():
+    if repo_dir is not None:
         try:
             result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],

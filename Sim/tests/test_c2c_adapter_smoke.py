@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from engine.sut_adapter import SUTIntegrityError
+from engine.sut_adapter import SUTIntegrityError, compute_pin
 from sim_c2c.adapter import C2CAdapter
 
 C2C_ROOT = Path(__file__).resolve().parent.parent.parent / "C2C"
@@ -19,11 +19,22 @@ def adapter():
     return C2CAdapter(C2C_ROOT)
 
 
-def test_pin_git_commit_is_none_because_c2c_is_not_a_repo(adapter):
-    # AC1.1: content_hash is the real pin; C2C has no .git so git_commit is None (not a bug).
-    assert adapter.pin.git_commit is None
+def test_pin_in_fork_monorepo(adapter):
+    # AC1.1: content_hash is the real pin. In this fork the C2C tree lives inside
+    # the fork's monorepo, so the supplementary git_commit resolves to its HEAD.
     assert isinstance(adapter.pin.content_hash, str) and len(adapter.pin.content_hash) == 64
     assert len(adapter.pin.source_paths) == 6
+    assert adapter.pin.git_commit is not None and len(adapter.pin.git_commit) == 40
+
+
+def test_pin_git_commit_none_outside_any_repo(tmp_path):
+    # The graceful-None property the original (pre-fork) test pinned: with no
+    # enclosing repo, git_commit is None — never an error. content_hash still computes.
+    src = tmp_path / "module.py"
+    src.write_text("X = 1\n")
+    pin = compute_pin([src], repo_dir=tmp_path)
+    assert pin.git_commit is None
+    assert len(pin.content_hash) == 64
 
 
 def test_assert_pinned_passes_when_unchanged(adapter):

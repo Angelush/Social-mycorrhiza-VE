@@ -1,0 +1,30 @@
+{
+  "keys": [
+    {"key": "banco_de_tiempo", "expect": "admit", "note": "AC-T1 regresion de substring ('ban' in 'banco')"},
+    {"key": "zona_urbana", "expect": "admit", "note": "AC-T4"},
+    {"key": "underscore", "expect": "admit", "note": "AC-T4 ('score' no es substring, pero 'underscore' tampoco es token 'score')"},
+    {"key": "rango_de_fechas", "expect": "admit", "note": "AC-T4 ('ban' no aparece como token)"},
+    {"key": "puntuacion", "expect": "reject", "note": "AC-T2, sin tilde"},
+    {"key": "puntuación", "expect": "reject", "note": "AC-T2, con tilde (NFD)"},
+    {"key": "cedula", "expect": "reject", "note": "AC-T2"},
+    {"key": "cédula", "expect": "reject", "note": "AC-T2, con tilde"},
+    {"key": "rif", "expect": "reject", "note": "AC-T2"},
+    {"key": "lista_negra", "expect": "reject", "note": "AC-Ta5, bigrama"},
+    {"key": "listaNegra", "expect": "reject", "note": "AC-Ta5, bigrama camelCase"},
+    {"key": "lista", "expect": "admit", "note": "AC-Ta5, token individual no prohibido"},
+    {"key": "negra", "expect": "admit", "note": "AC-Ta5, token individual no prohibido"},
+    {"key": "score", "expect": "reject", "note": "taxonomia base"},
+    {"key": "reputacion", "expect": "reject", "note": "variante castellana"},
+    {"key": "global_id", "expect": "reject", "note": "compuesto de dos tokens, taxonomia completa"},
+    {"key": "sanción", "expect": "reject", "note": "con tilde"}
+  ],
+  "values": [
+    {"value": "V-12.345.678", "expect": "reject", "note": "AC-T3, cedula con puntos y guion"},
+    {"value": "E12345678", "expect": "reject", "note": "AC-T3, cedula sin puntos ni guion"},
+    {"value": "J-12345678-9", "expect": "reject", "note": "AC-T3, RIF"},
+    {"value": "0412-1234567", "expect": "reject", "note": "AC-T3, telefono"},
+    {"value": "00584121234567", "expect": "reject", "note": "AC-T3, telefono con prefijo internacional 0058"},
+    {"value": "hola, banco de tiempo", "expect": "admit", "note": "prosa libre sin patron de identidad"},
+    {"value": "12345678", "expect": "admit", "note": "numero sin forma de cedula/RIF/telefono"}
+  ]
+}

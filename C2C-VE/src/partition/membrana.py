@@ -21,6 +21,15 @@ Procedencia: redactado por Mistral vía multi-model-orchestration, revisado por 
 import re
 import unicodedata
 
+# --- Área c: import del módulo `modo` (maquinaria compartida, fuente ÚNICA de la tabla de límites).
+# Shim de path para resolver `modo.modo` bajo carga standalone por ruta (los tests cargan cada capa
+# con spec_from_file_location, sin `src` en sys.path). NO forma parte del bloque firewall
+# byte-idéntico. `modo` no importa ninguna capa (C-c6, sin ciclos).
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from modo.modo import validar_modo, ErrorDeModo
+
 
 class ErrorDeBrechaMembrana(Exception):
     """Se lanza cuando una interacción viola el cortafuegos de la membrana."""
@@ -118,7 +127,7 @@ RECIPROCITY_LEDGER_KEYS = [
 # colarse como hermano de `carga` (el escaneo de mercado está acotado a la carga y lo pasaría por
 # alto). Lista blanca, no lista negra, igual que Capa-3/5/6, que ya ponen en lista blanca sus claves
 # estructurales; Capa-1 era la única capa que no lo hacía.
-_ENVELOPE_KEYS = ('sala', 'celula_id', 'interaccion_id', 'expira_en', 'participantes', 'carga')
+_ENVELOPE_KEYS = ('sala', 'celula_id', 'interaccion_id', 'expira_en', 'participantes', 'carga', 'modo')
 
 
 def _contains_forbidden_key(obj, taxonomy):
@@ -208,6 +217,14 @@ def admitir(interaccion: dict) -> dict:
     # 1. Validar el sobre (rechazar/lanzar, no reparar)
     if not isinstance(interaccion, dict):
         raise ErrorDeBrechaMembrana("La interacción debe ser un dict")
+
+    # Área c: si el envelope trae `modo`, aplicar su calibración (rechazar, no recortar). Ausencia
+    # de `modo` = no engancha (compat con envelopes previos).
+    if 'modo' in interaccion:
+        try:
+            validar_modo(interaccion)
+        except ErrorDeModo as _e:
+            raise ErrorDeBrechaMembrana(str(_e)) from _e
 
     # Lista blanca del sobre: cualquier clave inesperada de primer nivel es rechazada (D-01),
     # cerrando la brecha donde una clave de mercado en el sobre (hermana de carga) no estaba

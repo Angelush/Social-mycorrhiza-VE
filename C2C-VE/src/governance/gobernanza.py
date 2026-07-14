@@ -45,6 +45,15 @@ salida; veredicto mantenido categórico sin recuento).
 import re
 import unicodedata
 
+# --- Área c: import del módulo `modo` (maquinaria compartida, fuente ÚNICA de la tabla de límites).
+# Shim de path para resolver `modo.modo` bajo carga standalone por ruta (los tests cargan cada capa
+# con spec_from_file_location, sin `src` en sys.path). NO forma parte del bloque firewall
+# byte-idéntico. `modo` no importa ninguna capa (C-c6, sin ciclos).
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from modo.modo import validar_modo, ErrorDeModo
+
 
 class ErrorDeBrechaGobernanza(Exception):
     """Se lanza cuando una ronda de gobernanza incumple el envoltorio, un escaneo de forma o la
@@ -262,6 +271,13 @@ def decidir(request: dict) -> dict:
     (nunca se lanzan). No persiste nada. Devuelve el envoltorio de decisión especificado en
     capa6/spec.md.
     """
+    # Área c: si el envelope trae `modo`, aplicar su calibración (rechazar, no recortar).
+    if isinstance(request, dict) and 'modo' in request:
+        try:
+            validar_modo(request)
+        except ErrorDeModo as _e:
+            raise ErrorDeBrechaGobernanza(str(_e)) from _e
+
     # 1. Validar el envoltorio (rechazar, nunca reparar).
     _validar_sobre(request)
 

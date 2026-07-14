@@ -41,6 +41,15 @@ from __future__ import annotations
 import re
 import unicodedata
 
+# --- Área c: import del módulo `modo` (maquinaria compartida, fuente ÚNICA de la tabla de límites).
+# Shim de path para resolver `modo.modo` bajo carga standalone por ruta (los tests cargan cada capa
+# con spec_from_file_location, sin `src` en sys.path). NO forma parte del bloque firewall
+# byte-idéntico. `modo` no importa ninguna capa (C-c6, sin ciclos).
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from modo.modo import validar_modo, ErrorDeModo
+
 
 # === BEGIN shared firewall machinery (byte-identical across all six capas; AC-X) ===
 # Tokenizing + normalizing key-match, plus identity-pattern value-scan. Fixed by
@@ -156,6 +165,15 @@ def resolver(campana: dict) -> dict:
     # 1. Validar (rechazar, nunca reparar) ------------------------------------
     if not isinstance(campana, dict):
         raise ValueError("campana debe ser un dict")
+
+    # Área c: si el envelope trae `modo`, aplicar su calibración (rechazar, no recortar). Capa 4
+    # usa ValueError como convención de rechazo de sobre (ver TA.3); `ahora` no viaja aquí, así que
+    # la retención por tiempo no se evalúa (payload/hops/proposals sí, si están presentes).
+    if 'modo' in campana:
+        try:
+            validar_modo(campana)
+        except ErrorDeModo as _e:
+            raise ValueError(str(_e)) from _e
     bad_key = _forbidden_key_path(campana)
     if bad_key is not None:
         raise ValueError(

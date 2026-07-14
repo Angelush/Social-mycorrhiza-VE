@@ -43,6 +43,15 @@ descarte/amortiguación confirmados contra la spec).
 import re
 import unicodedata
 
+# --- Área c: import del módulo `modo` (maquinaria compartida, fuente ÚNICA de la tabla de límites).
+# Shim de path para resolver `modo.modo` bajo carga standalone por ruta (los tests cargan cada capa
+# con spec_from_file_location, sin `src` en sys.path). NO forma parte del bloque firewall
+# byte-idéntico. `modo` no importa ninguna capa (C-c6, sin ciclos).
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from modo.modo import validar_modo, ErrorDeModo
+
 
 class ErrorDeBrechaEstigmergia(Exception):
     """Se lanza cuando una solicitud de sentir viola el sobre o el escaneo de forma-de-vigilancia.
@@ -171,6 +180,14 @@ def sentir(request: dict) -> dict:
     # 1. Validar el sobre (rechazar, nunca reparar).
     if not isinstance(request, dict):
         raise ErrorDeBrechaEstigmergia("request debe ser un dict")
+
+    # Área c: si el envelope trae `modo`, aplicar su calibración (rechazar, no recortar). En Capa 5
+    # `ahora` es un tick entero: la retención por tiempo la gobierna `depurar()` (TA.5), no aquí.
+    if 'modo' in request:
+        try:
+            validar_modo(request)
+        except ErrorDeModo as _e:
+            raise ErrorDeBrechaEstigmergia(str(_e)) from _e
 
     cell_id = request.get('celula_id')
     if not isinstance(cell_id, str) or cell_id == '':

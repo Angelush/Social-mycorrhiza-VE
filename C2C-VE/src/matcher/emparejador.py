@@ -42,6 +42,15 @@ traza de auditoría finalizada).
 import re
 import unicodedata
 
+# --- Área c: import del módulo `modo` (maquinaria compartida, fuente ÚNICA de la tabla de límites).
+# Shim de path para resolver `modo.modo` bajo carga standalone por ruta (los tests cargan cada capa
+# con spec_from_file_location, sin `src` en sys.path). NO forma parte del bloque firewall
+# byte-idéntico. `modo` no importa ninguna capa (C-c6, sin ciclos).
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from modo.modo import validar_modo, ErrorDeModo
+
 
 class ErrorDeBrechaEmparejador(Exception):
     """Se lanza cuando una SOLICITUD de emparejamiento rompe el envoltorio (sobre o forma de
@@ -274,6 +283,13 @@ def emparejar(solicitud: dict, proponer) -> dict:
     """
     if not callable(proponer):
         raise ErrorDeBrechaEmparejador("proponer must be a callable")
+
+    # Área c: si el envelope trae `modo`, aplicar su calibración (rechazar, no recortar).
+    if isinstance(solicitud, dict) and 'modo' in solicitud:
+        try:
+            validar_modo(solicitud)
+        except ErrorDeModo as _e:
+            raise ErrorDeBrechaEmparejador(str(_e)) from _e
 
     # 1. Validar el sobre (rechazar, nunca reparar).
     _validar_solicitud(solicitud)

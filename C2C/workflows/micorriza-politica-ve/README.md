@@ -49,6 +49,28 @@ comparación/conversión entre ambas es una decisión humana fuera del protocolo
 `expira_en` corto, porque el motor no modela inflación (sería otra tasa disputada). Señalado en
 `lo-intocable.md`.
 
+## Convención de uso — convergencia en desastre (área f, sin código)
+
+El escenario: tras un **deslave en La Guaira / Caracas**, una ráfaga de voluntarios ("las motos
+obstaculizando la maquinaria pesada") satura la coordinación de una zona. No hay capa nueva: se modela
+sobre la **Capa 5** (estigmergia) existente y sus cortacircuitos.
+
+- **Trazas sobre zonas, jamás sobre personas.** Una traza es `about: 'zona:la-guaira-01'` (artefacto).
+  Ninguna señal *sobre una persona* (`about: 'persona:*'`) es representable — se rechaza. Una señal
+  sobre persona sería un escalar/marca encubierta (invariantes 1/2).
+- **`paso_maquinaria`** marca una zona reservada para paso de maquinaria pesada. Es señal ambiental de
+  **zona**: solo válida sobre `zona:*`, y queda representable y visible. Nunca sobre una persona.
+- **El cap de velocidad ES el amortiguador de estampida.** La ráfaga de `presencia` sobre una zona se
+  throttlea por ventana. En `catastrofe_severa` el cap es **estricto** (cota ≤ 3 frente a ≤ 10 acotada
+  y ≤ 50 paz, fuente única en `modo`): no se puede pedir un cap más laxo que el del modo. El mecanismo
+  **nunca se apaga**; solo varían sus parámetros (invariante 8).
+- **Contexto antes que juicio.** Una `bandera` (alerta) *sin contexto* se amortigua hasta que porte
+  contexto — una alerta desnuda es el germen de una cascada de pánico o de una marca informal.
+- **Alcance celular / cero-broadcast.** Una traza no sale de su célula.
+
+La calibración concreta del cap no está validada en un desastre real (`failure-model.md`); el test
+verifica el *mecanismo* (throttling, no-persona, amortiguación de alerta), no el número óptimo.
+
 ## Gate de esta tarea (TA.1)
 
 - Sub-bundle completo, área por área, con cláusulas-porque en cada `constraints.md`.

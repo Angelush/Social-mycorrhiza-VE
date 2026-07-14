@@ -50,7 +50,7 @@ import unicodedata
 import os as _os
 import sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-from modo.modo import validar_modo, ErrorDeModo
+from modo.modo import validar_modo, ErrorDeModo, TOPE_VELOCIDAD_MAX
 
 
 class ErrorDeBrechaEstigmergia(Exception):
@@ -135,8 +135,16 @@ def _value_has_identity_shape(value):
 # Lista blanca de señales de suma positiva: solo tipos de traza ambiental. Ninguna señal de
 # veto/desconfianza/condena es representable (invariante 3). `bandera` es la única señal con forma
 # de juicio — sobre un ARTEFACTO, controlada por el cortacircuito de contexto-antes-que-juicio.
-ALLOWED_SIGNALS = ('contribucion', 'ruta', 'respaldo', 'presencia', 'bandera')
+ALLOWED_SIGNALS = ('contribucion', 'ruta', 'respaldo', 'presencia', 'bandera', 'paso_maquinaria')
 JUDGMENT_SIGNALS = ('bandera',)
+
+# Área f: regla de traza-ambiental. Ninguna traza —de cualquier señal— es *sobre una persona*
+# (invariantes 1/2: escalar-de-persona encubierto). Y `paso_maquinaria` es señal ambiental de ZONA:
+# solo válida sobre `zona:*`, jamás sobre `persona:*` (C-f2, AC-C1/AC-f4). Taxonomía de dominio
+# PRIVADA de la capa (fuera del bloque firewall compartido, como MARKET_KEYS/TASA_KEYS).
+_NS_PERSONA = 'persona:'                       # jamás sujeto de una traza
+_NS_ZONA = 'zona:'                             # espacio de artefacto para señales de zona
+_SENALES_SOLO_ZONA = ('paso_maquinaria',)     # señal ambiental que solo vive sobre `zona:*`
 
 # Las claves de traza están en lista blanca para que ningún escalar-de-persona / contador de
 # interacción / veto pueda entrar por un campo.
@@ -205,6 +213,19 @@ def sentir(request: dict) -> dict:
     if not isinstance(velocity_cap, int) or isinstance(velocity_cap, bool) or velocity_cap <= 0:
         raise ErrorDeBrechaEstigmergia("tope_velocidad debe ser un int > 0")
 
+    # Área f: el velocity_cap ES el amortiguador de convergencia. Si el envelope trae `modo`, la cota
+    # estricta por modo (fuente ÚNICA en modo.py, NO se duplica la tabla) es el mínimo exigido:
+    # severa(3) <= acotada(10) <= paz(50). No se puede pedir un cap más laxo que la cota del modo
+    # (patrón "rechaza, no recorta"). El mecanismo nunca se apaga (C-f3/invariante 8): la cota más
+    # estricta sigue siendo un cap activo.
+    if 'modo' in request:
+        cota = TOPE_VELOCIDAD_MAX[request['modo']]
+        if velocity_cap > cota:
+            raise ErrorDeBrechaEstigmergia(
+                f"tope_velocidad={velocity_cap} excede la cota estricta del modo "
+                f"{request['modo']!r} (<= {cota}); en catástrofe el cap es estricto"
+            )
+
     half_life = request.get('vida_media')
     if not isinstance(half_life, int) or isinstance(half_life, bool) or half_life <= 0:
         raise ErrorDeBrechaEstigmergia("vida_media debe ser un int > 0")
@@ -228,10 +249,22 @@ def sentir(request: dict) -> dict:
         about = trace.get('about')
         if not isinstance(about, str) or about == '':
             raise ErrorDeBrechaEstigmergia(f"trazas[{i}]['about'] debe ser una cadena no vacía")
+        # Regla traza-ambiental (área f): ninguna traza es *sobre una persona* (rechazo duro, como una
+        # forma de vigilancia; no un descarte-y-cuenta). Invariantes 1/2, AC-C1/AC-f4.
+        if about.startswith(_NS_PERSONA):
+            raise ErrorDeBrechaEstigmergia(
+                f"trazas[{i}]['about'] no puede ser sobre una persona (regla traza-ambiental): {about!r}"
+            )
         signal = trace.get('senal')
         if signal not in ALLOWED_SIGNALS:
             raise ErrorDeBrechaEstigmergia(
                 f"trazas[{i}]['senal'] debe ser una de {ALLOWED_SIGNALS}; se recibió {signal!r}"
+            )
+        # `paso_maquinaria` (y toda señal de zona) solo es válida sobre `zona:*` (C-f2, AC-f4).
+        if signal in _SENALES_SOLO_ZONA and not about.startswith(_NS_ZONA):
+            raise ErrorDeBrechaEstigmergia(
+                f"trazas[{i}]: señal {signal!r} solo es válida sobre una zona ({_NS_ZONA}<id>); "
+                f"se recibió about={about!r}"
             )
         strength = trace.get('fuerza')
         if isinstance(strength, bool) or not isinstance(strength, (int, float)):

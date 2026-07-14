@@ -10,9 +10,9 @@ C-c1). Valores: `paz`, `catastrofe_acotada`, `catastrofe_severa`. Cada capa apli
 sobre su envelope antes de su lógica propia. Un request que excede el límite de su modo se
 **rechaza** (`raise`), nunca se recorta (C-c2).
 
-Alcance de este módulo (TA.4): tabla de límites + `validar_modo`. `depurar()` (evacuación pura tras
-escalada) y `validar_transicion()` (trinquete asimétrico) pertenecen al Área d (TA.5) y se añaden
-allí; no viven aquí todavía.
+Alcance del módulo: tabla de límites + `validar_modo` (Área c, TA.4); `validar_transicion` (trinquete
+asimétrico), `depurar` (evacuación pura tras escalada) y el helper de convención `tras_escalada`
+(Área d, TA.5). Todo puro y determinista; `modo` sigue sin importar ninguna capa.
 
 Los valores de la tabla son DEFAULTS ajustables por decisión de Capa 6, no dogma (C-c3). Los valores
 de `velocity_cap` (ordinal `estrictez_velocidad` + cota `tope_velocidad_max`) son PROPUESTAS de
@@ -23,7 +23,7 @@ Especificación: workflows/micorriza-politica-ve/area-c-modo/{spec,constraints,f
 Diseño: workflows/micorriza-politica-ve/area-c-modo/DESIGN-TA4.md
 """
 import json
-from datetime import date
+from datetime import date, timedelta
 
 
 class ErrorDeModo(Exception):
@@ -182,3 +182,148 @@ def validar_modo(request):
             )
 
     return modo
+
+
+# ==================================================================== Área d · TA.5
+# El trinquete asimétrico y la evacuación pura. Ver DESIGN-TA5.md y area-d-trinquete/{spec,
+# constraints,failure-model}.md. Todo puro; `modo` no importa ninguna capa (C-c6).
+
+def _indice_modo(m):
+    """Índice de estrictez de `m` en MODOS (paz=0 < acotada=1 < severa=2). `raise` si inválido."""
+    if m not in MODOS:
+        raise ErrorDeModo(f"modo inválido: {m!r}; uno de {MODOS}")
+    return MODOS.index(m)
+
+
+def _autoriza_desescalada(decision, propuesto):
+    """¿`decision` (veredicto de `gobernanza.decidir`) autoriza la desescalada a `propuesto`?
+
+    La correspondencia "esa propuesta `cambiar_modo` / ese círculo" (C-d2) es auto-contenida en la
+    decisión, porque la firma de `validar_transicion` es de tres argumentos y no lleva círculo.
+    Convención del `propuesta_id` de una propuesta de cambio de modo:
+
+        cambiar_modo:{circulo_id}:{modo_destino}
+
+    Autoriza iff la decisión es `adoptada` Y su `propuesta_id` codifica exactamente un cambio a
+    `propuesto` **ligado a su propio círculo**. Así:
+      - otra propuesta → `propuesta_id` no codifica `cambiar_modo…:{propuesto}` → no autoriza;
+      - otro círculo → `propuesta_id` nombra un círculo distinto del `circulo_id` de la decisión
+        (una decisión adoptada de B no puede autorizar la propuesta de A) → no autoriza;
+      - veredicto `revisar` → no autoriza.
+
+    Se consume el veredicto tal cual; NO se reimplementa gobernanza (C-d5). La clave es `veredicto`
+    (con e), la que devuelve `gobernanza.decidir` — la fuente de verdad, aunque la prosa del spec
+    escriba `verdicto`.
+    """
+    if not isinstance(decision, dict):
+        return False
+    if decision.get('veredicto') != 'adoptada':
+        return False
+    circulo_id = decision.get('circulo_id')
+    if not isinstance(circulo_id, str) or circulo_id == '':
+        return False
+    esperado = f"cambiar_modo:{circulo_id}:{propuesto}"
+    return decision.get('propuesta_id') == esperado
+
+
+def validar_transicion(actual, propuesto, decision_capa6=None):
+    """Trinquete asimétrico de modos. Función pura; devuelve un ESTADO, nunca recorta (§F, área d).
+
+    - **Escalada** (a mayor hostilidad, `idx(propuesto) > idx(actual)`): **unilateral e inmediata**;
+      cualquier token la dispara, `decision_capa6` es irrelevante (C-d1). Devuelve `'escalada'`.
+    - **Desescalada** (a menor hostilidad): válida SOLO con una decisión `adoptada` de Capa 6 sobre
+      la propuesta `cambiar_modo` de ese círculo (`_autoriza_desescalada`). Devuelve `'desescalada'`.
+      Re-expandir retención/alcance/payload es riesgo colectivo, no de un individuo (C-d1).
+    - `actual == propuesto`: **no es transición**; devuelve `'no_op'` (explícito, sin error — AC-d3).
+
+    Fuerza el PROCEDIMIENTO, no la buena fe (C-d3): no impide escaladas abusivas en bucle; solo
+    garantiza que desescalar exija consentimiento. El cooldown es decisión de gobernanza abierta,
+    NO se incrusta aquí (failure-model).
+
+    Returns:
+        str: `'escalada'`, `'desescalada'` o `'no_op'`.
+
+    Raises:
+        ErrorDeModo: modo inválido, o desescalada sin decisión `adoptada` correspondiente (rechazo).
+    """
+    ia, ip = _indice_modo(actual), _indice_modo(propuesto)
+    if ip == ia:
+        return 'no_op'
+    if ip > ia:
+        return 'escalada'
+    # Desescalada: exige consentimiento de Capa 6 para esa propuesta y ese círculo.
+    if _autoriza_desescalada(decision_capa6, propuesto):
+        return 'desescalada'
+    raise ErrorDeModo(
+        f"desescalada {actual}→{propuesto} rechazada: requiere una decisión 'adoptada' de Capa 6 "
+        f"sobre la propuesta 'cambiar_modo' de ese círculo (sin auto-propagación)"
+    )
+
+
+def depurar(items, modo, ahora):
+    """Evacuación pura determinista: aplica la ventana de retención de `modo` a `items` almacenados.
+
+    `ahora` es una fecha ISO (granularidad de días, coherente con `validar_modo`). Por tipo de item
+    (clave `tipo`, con `creado_en` ISO):
+
+      - `traza`: se **RECORTA** su TTL a la ventana `retencion_trazas_dias` — `expira_en ←
+        min(expira_en, creado_en + ventana)` — y se **conserva** (nunca se elimina: es el "salvo" del
+        spec). El recorte es idempotente (AC-M3).
+      - resto (`dato`, …): se **ELIMINA** si `edad = ahora − creado_en` excede `retencion_max_dias`;
+        si no, se conserva sin cambios.
+
+    Un item con `creado_en` no parseable se descarta (evacuación conservadora: sin fecha no se puede
+    probar que está dentro de ventana ni recortar su TTL). **Señalado.**
+
+    NO muta las entradas (las trazas recortadas son copias). La EJECUCIÓN de `depurar` tras una
+    escalada es convención del llamador (una función pura no puede forzarse): ver `tras_escalada`,
+    el test que la fija, y C-d4/C-c5.
+
+    Returns:
+        list: los items que sobreviven (datos dentro de ventana + trazas con TTL recortado).
+
+    Raises:
+        ErrorDeModo: `modo` inválido, o `ahora` no es una fecha ISO.
+    """
+    if modo not in LIMITES:
+        raise ErrorDeModo(f"modo inválido: {modo!r}; uno de {MODOS}")
+    lim = LIMITES[modo]
+    d_ahora = _fecha_iso(ahora)
+    if d_ahora is None:
+        raise ErrorDeModo(f"ahora debe ser una fecha ISO (YYYY-MM-DD…): {ahora!r}")
+
+    supervivientes = []
+    for item in items:
+        creado = _fecha_iso(item.get('creado_en') if isinstance(item, dict) else None)
+        if creado is None:
+            continue  # malformado: no verificable → se descarta (conservador)
+        if item.get('tipo') == 'traza':
+            tope = creado + timedelta(days=lim['retencion_trazas_dias'])
+            exp = _fecha_iso(item.get('expira_en'))
+            nuevo = tope if exp is None else min(exp, tope)
+            recortada = dict(item)
+            recortada['expira_en'] = nuevo.isoformat()
+            supervivientes.append(recortada)
+        else:
+            edad = (d_ahora - creado).days
+            if edad <= lim['retencion_max_dias']:
+                supervivientes.append(item)
+    return supervivientes
+
+
+def tras_escalada(items, actual, propuesto, ahora):
+    """Helper de CONVENCIÓN (C-d4) que acopla escalada→depuración; NO es un efecto forzado.
+
+    Valida que `actual→propuesto` sea una escalada y devuelve `depurar(items, propuesto, ahora)`, de
+    modo que los items que exceden la nueva ventana más estricta se eliminen/recorten. El
+    acoplamiento se fija con este helper + un test + la convención documentada; una función pura no
+    puede obligar al llamador a invocarlo (C-d4, C-c5/failure-model). NO se finge la garantía.
+
+    Raises:
+        ErrorDeModo: si `actual→propuesto` no es una escalada (o algún modo es inválido).
+    """
+    if validar_transicion(actual, propuesto) != 'escalada':
+        raise ErrorDeModo(
+            f"tras_escalada solo aplica a una escalada; {actual}→{propuesto} no lo es"
+        )
+    return depurar(items, propuesto, ahora)

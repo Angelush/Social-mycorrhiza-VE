@@ -31,12 +31,12 @@ CANONICAL_FORBIDDEN = frozenset({
 
 # (module attribute name, relative path). Every capa that carries the taxonomy.
 _LAYERS = {
-    "assurance":   "assurance/assurance_engine.py",   # Capa-4 — the one the AC-X net missed
-    "membrane":    "partition/membrane.py",           # Capa-1
-    "legibility":  "legibility/legibility_query.py",  # Capa-2
-    "matcher":     "matcher/matcher.py",              # Capa-3
-    "stigmergy":   "stigmergy/stigmergy.py",          # Capa-5
-    "governance":  "governance/governance.py",        # Capa-6
+    "assurance":   "assurance/aseguramiento.py",      # Capa-4 — the one the AC-X net missed
+    "membrane":    "partition/membrana.py",           # Capa-1
+    "legibility":  "legibility/legibilidad.py",       # Capa-2
+    "matcher":     "matcher/emparejador.py",          # Capa-3
+    "stigmergy":   "stigmergy/estigmergia.py",        # Capa-5
+    "governance":  "governance/gobernanza.py",        # Capa-6
 }
 
 

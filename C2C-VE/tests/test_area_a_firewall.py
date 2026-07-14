@@ -24,12 +24,12 @@ _CASOS = (
 )
 
 _LAYERS = {
-    "assurance":   "assurance/assurance_engine.py",
-    "membrane":    "partition/membrane.py",
-    "legibility":  "legibility/legibility_query.py",
-    "matcher":     "matcher/matcher.py",
-    "stigmergy":   "stigmergy/stigmergy.py",
-    "governance":  "governance/governance.py",
+    "assurance":   "assurance/aseguramiento.py",
+    "membrane":    "partition/membrana.py",
+    "legibility":  "legibility/legibilidad.py",
+    "matcher":     "matcher/emparejador.py",
+    "stigmergy":   "stigmergy/estigmergia.py",
+    "governance":  "governance/gobernanza.py",
 }
 
 
@@ -66,14 +66,14 @@ def test_AC_T1_banco_de_tiempo_admitted_in_all_six_layers():
 
 def test_AC_T1_membrane_admits_banco_de_tiempo_in_communal_gift_room():
     membrane = _MODULES["membrane"]
-    result = membrane.admit({
-        "mode": "communal_gift",
-        "cell_id": "cell-1",
-        "interaction_id": "int-1",
-        "participants": ["alice", "bob"],
-        "payload": {"banco_de_tiempo": {"horas": 3}},
+    result = membrane.admitir({
+        "sala": "don_comunal",
+        "celula_id": "cell-1",
+        "interaccion_id": "int-1",
+        "participantes": ["alice", "bob"],
+        "carga": {"banco_de_tiempo": {"horas": 3}},
     })
-    assert result["admitted"] is True
+    assert result["admitido"] is True
 
 
 # --- AC-T2: puntuación/puntuacion, cedula/cédula, rif rejected in all six layers, NFD ----------
@@ -115,13 +115,13 @@ def test_AC_T3_identity_shaped_value_rejected_when_nested(value):
 
 def test_AC_T3_membrane_admit_raises_on_identity_shaped_value():
     membrane = _MODULES["membrane"]
-    with pytest.raises(membrane.MembraneBreachError):
-        membrane.admit({
-            "mode": "communal_gift",
-            "cell_id": "cell-1",
-            "interaction_id": "int-1",
-            "participants": ["alice"],
-            "payload": {"note": "mi cedula es V-12.345.678"},
+    with pytest.raises(membrane.ErrorDeBrechaMembrana):
+        membrane.admitir({
+            "sala": "don_comunal",
+            "celula_id": "cell-1",
+            "interaccion_id": "int-1",
+            "participantes": ["alice"],
+            "carga": {"nota": "mi cedula es V-12.345.678"},
         })
 
 
@@ -195,7 +195,7 @@ def test_golden_set_keys(caso):
     expected_rejected = caso["expect"] == "reject"
     assert rejected == expected_rejected, (
         f"key {caso['key']!r}: expected {caso['expect']}, "
-        f"got {'reject' if rejected else 'admit'} ({caso['note']})"
+        f"got {'reject' if rejected else 'admitir'} ({caso['note']})"
     )
 
 
@@ -206,5 +206,5 @@ def test_golden_set_values(caso):
     expected_rejected = caso["expect"] == "reject"
     assert rejected == expected_rejected, (
         f"value {caso['value']!r}: expected {caso['expect']}, "
-        f"got {'reject' if rejected else 'admit'} ({caso['note']})"
+        f"got {'reject' if rejected else 'admitir'} ({caso['note']})"
     )

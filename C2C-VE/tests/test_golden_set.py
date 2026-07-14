@@ -1,12 +1,13 @@
-"""Golden-set regression gate for the assurance engine.
+"""Compuerta de regresión de conjunto dorado para el motor de aseguramiento.
 
-The spec bundle (tests.md, README, audit.md) promises "re-run golden-set on any
-change (DVH-007/008)" — but nothing loaded the fixtures, so they could drift from
-the engine silently. This wires workflows/.../evals/golden-set/*.json into pytest
-so a change that alters engine output fails here.
+El paquete de spec (tests.md, README, audit.md) promete "re-run golden-set on any
+change (DVH-007/008)" — pero nada cargaba las fixtures, así que podían desviarse
+del motor en silencio. Esto conecta workflows/.../evals/golden-set/*.json a pytest
+para que un cambio que altere la salida del motor falle aquí.
 
-Drafted by Mistral via multi-model-orchestration; reviewed by Claude (repo-root
-path anchoring fixed to match the sibling tests' idiom). stdlib + pytest only.
+Redactado por Mistral vía multi-model-orchestration; revisado por Claude (anclaje
+de ruta a la raíz del repo corregido para igualar el idioma de las pruebas
+hermanas). Solo stdlib + pytest.
 """
 import importlib.util
 import json
@@ -15,11 +16,11 @@ from pathlib import Path
 import pytest
 
 _ROOT = Path(__file__).resolve().parent.parent
-_ENGINE = _ROOT / "src" / "assurance" / "assurance_engine.py"
-_spec = importlib.util.spec_from_file_location("assurance_engine_golden", _ENGINE)
+_ENGINE = _ROOT / "src" / "assurance" / "aseguramiento.py"
+_spec = importlib.util.spec_from_file_location("aseguramiento_golden", _ENGINE)
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
-resolve = _mod.resolve
+resolver = _mod.resolver
 
 _GOLDEN = _ROOT / "workflows" / "micorriza-politica" / "evals" / "golden-set"
 
@@ -31,17 +32,17 @@ def _load(name):
 @pytest.mark.parametrize("name", ["test_A.json", "test_B.json"])
 def test_golden_full_equality(name):
     data = _load(name)
-    assert resolve(data["input"]) == data["expected"]
+    assert resolver(data["input"]) == data["expected"]
 
 
 @pytest.mark.parametrize("campaign_key", ["campaign_1", "campaign_2"])
 def test_golden_status_check(campaign_key):
     entry = _load("test_C_crosscampaign.json")[campaign_key]
-    assert resolve(entry["input"])["status"] == entry["expected_status"]
+    assert resolver(entry["input"])["estado"] == entry["expected_status"]
 
 
 @pytest.mark.parametrize("reject_key", list(_load("test_C_crosscampaign.json")["rejected_inputs"]))
 def test_golden_rejected_inputs(reject_key):
     bad = _load("test_C_crosscampaign.json")["rejected_inputs"][reject_key]
     with pytest.raises(ValueError):
-        resolve(bad)
+        resolver(bad)

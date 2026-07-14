@@ -1,43 +1,43 @@
 {
-  "note": "AC5c — two campaigns sharing participant_token t1 resolve independently; neither output may contain any cross-campaign aggregate or per-person score.",
+  "note": "AC5c — dos campañas que comparten ficha_participante t1 se resuelven independientemente; ninguna salida puede contener un agregado entre campañas ni un puntaje por persona.",
   "campaign_1": {
     "input": {
-      "campaign_id": "campC1", "cell_id": "barrio-2", "kind": "binary",
-      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
-      "pledges": [
-        {"pledge_id": "p1", "participant_token": "t1"},
-        {"pledge_id": "p2", "participant_token": "t9"}
+      "campana_id": "campC1", "celula_id": "barrio-2", "tipo": "binario",
+      "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
+      "compromisos": [
+        {"compromiso_id": "p1", "ficha_participante": "t1"},
+        {"compromiso_id": "p2", "ficha_participante": "t9"}
       ]
     },
-    "expected_status": "fires"
+    "expected_status": "se_activa"
   },
   "campaign_2": {
     "input": {
-      "campaign_id": "campC2", "cell_id": "barrio-3", "kind": "binary",
-      "threshold": 4, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
-      "pledges": [
-        {"pledge_id": "p1", "participant_token": "t1"},
-        {"pledge_id": "p2", "participant_token": "t5"}
+      "campana_id": "campC2", "celula_id": "barrio-3", "tipo": "binario",
+      "umbral": 4, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
+      "compromisos": [
+        {"compromiso_id": "p1", "ficha_participante": "t1"},
+        {"compromiso_id": "p2", "ficha_participante": "t5"}
       ]
     },
-    "expected_status": "refunds"
+    "expected_status": "reembolsa"
   },
   "rejected_inputs": {
     "forbidden_field": {
-      "campaign_id": "campC_bad", "cell_id": "barrio-2", "kind": "monetary",
-      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
+      "campana_id": "campC_bad", "celula_id": "barrio-2", "tipo": "monetario",
+      "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
       "global_score": {"t1": 0.9},
-      "pledges": [{"pledge_id": "p1", "participant_token": "t1", "amount_cents": 100}]
+      "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1", "monto_centavos": 100}]
     },
     "membrane_breach_priced_binary": {
-      "campaign_id": "campC_bad2", "cell_id": "barrio-2", "kind": "binary",
-      "threshold": 2, "sponsor_bonus_cents": 0, "expires_at": "2026-12-31T00:00:00Z",
-      "pledges": [{"pledge_id": "p1", "participant_token": "t1", "amount_cents": 500}]
+      "campana_id": "campC_bad2", "celula_id": "barrio-2", "tipo": "binario",
+      "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
+      "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1", "monto_centavos": 500}]
     },
     "bonus_on_binary": {
-      "campaign_id": "campC_bad3", "cell_id": "barrio-2", "kind": "binary",
-      "threshold": 2, "sponsor_bonus_cents": 500, "expires_at": "2026-12-31T00:00:00Z",
-      "pledges": [{"pledge_id": "p1", "participant_token": "t1"}]
+      "campana_id": "campC_bad3", "celula_id": "barrio-2", "tipo": "binario",
+      "umbral": 2, "bono_patrocinador_centavos": 500, "expira_en": "2026-12-31T00:00:00Z",
+      "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1"}]
     }
   }
 }

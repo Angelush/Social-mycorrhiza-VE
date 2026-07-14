@@ -1,26 +1,26 @@
 {
   "input": {
-    "campaign_id": "campA",
-    "cell_id": "barrio-1",
-    "kind": "binary",
-    "threshold": 3,
-    "sponsor_bonus_cents": 0,
-    "expires_at": "2026-12-31T00:00:00Z",
-    "pledges": [
-      {"pledge_id": "p1", "participant_token": "t1"},
-      {"pledge_id": "p2", "participant_token": "t2"},
-      {"pledge_id": "p3", "participant_token": "t3"},
-      {"pledge_id": "p4", "participant_token": "t4"}
+    "campana_id": "campA",
+    "celula_id": "barrio-1",
+    "tipo": "binario",
+    "umbral": 3,
+    "bono_patrocinador_centavos": 0,
+    "expira_en": "2026-12-31T00:00:00Z",
+    "compromisos": [
+      {"compromiso_id": "p1", "ficha_participante": "t1"},
+      {"compromiso_id": "p2", "ficha_participante": "t2"},
+      {"compromiso_id": "p3", "ficha_participante": "t3"},
+      {"compromiso_id": "p4", "ficha_participante": "t4"}
     ]
   },
   "expected": {
-    "campaign_id": "campA",
-    "cell_id": "barrio-1",
-    "status": "fires",
-    "distinct_committers": 4,
-    "threshold": 3,
-    "expires_at": "2026-12-31T00:00:00Z",
-    "resolution": {"fires": {"total_pledged_cents": 0}, "refunds": []},
-    "audit_trace": {"rule": "distinct_committers >= threshold", "deduped_from_pledges": 4}
+    "campana_id": "campA",
+    "celula_id": "barrio-1",
+    "estado": "se_activa",
+    "comprometidos_distintos": 4,
+    "umbral": 3,
+    "expira_en": "2026-12-31T00:00:00Z",
+    "resolucion": {"se_activa": {"total_comprometido_centavos": 0}, "reembolsos": []},
+    "traza_auditoria": {"regla": "comprometidos_distintos >= umbral", "deduplicado_de_compromisos": 4}
   }
 }

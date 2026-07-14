@@ -1,4 +1,4 @@
-"""Property-based tests for the Capa-2 trust-legibility query (P1-P5).
+"""Property-based tests for the Capa-2 trust-legibility consultar (P1-P5).
 
 hypothesis-driven invariants of the razor's-edge layer:
 - no surveillance key ever survives into a verdict;
@@ -13,12 +13,12 @@ from pathlib import Path
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-_MOD = Path(__file__).resolve().parent.parent / "src" / "legibility" / "legibility_query.py"
-_spec = importlib.util.spec_from_file_location("legibility_query", _MOD)
+_MOD = Path(__file__).resolve().parent.parent / "src" / "legibility" / "legibilidad.py"
+_spec = importlib.util.spec_from_file_location("legibilidad", _MOD)
 mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(mod)
-query = mod.query
-LegibilityBreachError = mod.LegibilityBreachError
+consultar = mod.consultar
+LegibilityBreachError = mod.ErrorDeBrechaLegibilidad
 
 FORBIDDEN = ("score", "rating", "reputation", "rank", "blacklist", "ban",
              "penalty", "global_id", "dni")
@@ -41,12 +41,12 @@ def _scan_keys(obj):
 
 
 def _vouch(frm, to, cell="barrio-1", exp=FUTURE):
-    return {"from": frm, "to": to, "cell_id": cell, "expires_at": exp}
+    return {"de": frm, "a": to, "celula_id": cell, "expira_en": exp}
 
 
-def _req(vouches, asker="a", target="x", cell="barrio-1", now=NOW, max_hops=4, facts=None):
-    return {"asker": asker, "target": target, "cell_id": cell, "now": now,
-            "max_hops": max_hops, "graph": {"vouches": vouches, "facts": facts or []}}
+def _req(avales, consultante="a", objetivo="x", cell="barrio-1", now=NOW, max_hops=4, hechos=None):
+    return {"consultante": consultante, "objetivo": objetivo, "celula_id": cell, "ahora": now,
+            "saltos_max": max_hops, "grafo": {"avales": avales, "hechos": hechos or []}}
 
 
 _edges = st.lists(st.tuples(_tokens, _tokens), max_size=8)
@@ -60,7 +60,7 @@ def _mk_vouches(edges, cell="barrio-1", exp=FUTURE):
 @settings(max_examples=100)
 @given(edges=_edges)
 def test_p1_no_forbidden_key_in_verdict(edges):
-    out = query(_req(_mk_vouches(edges)))
+    out = consultar(_req(_mk_vouches(edges)))
     keys = {str(k).lower() for k in _scan_keys(out)}
     assert all(not any(t in k for t in FORBIDDEN) for k in keys)
 
@@ -69,8 +69,8 @@ def test_p1_no_forbidden_key_in_verdict(edges):
 @settings(max_examples=100)
 @given(edges=_edges, extra=_edges)
 def test_p2_expired_items_never_matter(edges, extra):
-    base = query(_req(_mk_vouches(edges)))["verdict"]
-    with_expired = query(_req(_mk_vouches(edges) + _mk_vouches(extra, exp=PAST)))["verdict"]
+    base = consultar(_req(_mk_vouches(edges)))["veredicto"]
+    with_expired = consultar(_req(_mk_vouches(edges) + _mk_vouches(extra, exp=PAST)))["veredicto"]
     assert base == with_expired
 
 
@@ -78,8 +78,8 @@ def test_p2_expired_items_never_matter(edges, extra):
 @settings(max_examples=100)
 @given(edges=_edges, extra=_edges)
 def test_p3_out_of_cell_never_matters(edges, extra):
-    base = query(_req(_mk_vouches(edges)))["verdict"]
-    with_other = query(_req(_mk_vouches(edges) + _mk_vouches(extra, cell="otro")))["verdict"]
+    base = consultar(_req(_mk_vouches(edges)))["veredicto"]
+    with_other = consultar(_req(_mk_vouches(edges) + _mk_vouches(extra, cell="otro")))["veredicto"]
     assert base == with_other
 
 
@@ -90,9 +90,9 @@ def test_p4_surveillance_key_always_refused(bad, depth):
     node = {bad: 1}
     for i in range(depth):
         node = {f"wrap{i}": node}
-    fact = {"about": "x", "cell_id": "barrio-1", "statement": "s", "meta": node}
+    fact = {"sobre": "x", "celula_id": "barrio-1", "afirmacion": "s", "meta": node}
     try:
-        query(_req([], facts=[fact]))
+        consultar(_req([], hechos=[fact]))
         assert False, "surveillance key survived into the graph"
     except LegibilityBreachError:
         pass
@@ -102,8 +102,8 @@ def test_p4_surveillance_key_always_refused(bad, depth):
 @settings(max_examples=100)
 @given(edges=_edges, new=st.tuples(_tokens, _tokens))
 def test_p5_adding_vouch_is_monotone(edges, new):
-    before = query(_req(_mk_vouches(edges)))["from_your_position"]["reachable"]
-    after = query(_req(_mk_vouches(edges) + [_vouch(new[0], new[1])]))["from_your_position"]["reachable"]
+    before = consultar(_req(_mk_vouches(edges)))["desde_tu_posicion"]["alcanzable"]
+    after = consultar(_req(_mk_vouches(edges) + [_vouch(new[0], new[1])]))["desde_tu_posicion"]["alcanzable"]
     # whitelist graph: adding an edge cannot destroy reachability
     if before:
         assert after

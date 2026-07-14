@@ -214,3 +214,15 @@ def test_acd4_tras_escalada_rechaza_desescalada():
         tras_escalada([], SEVERA, PAZ, '2026-07-14')
     with pytest.raises(ErrorDeModo):
         tras_escalada([], PAZ, PAZ, '2026-07-14')  # no-op no es escalada
+
+
+# ============================================================ PB-d (idempotencia) — propiedad (TA.8)
+@given(n_datos=st.integers(0, 6), n_trazas=st.integers(0, 6))
+def test_pbd_depurar_idempotente_propiedad(n_datos, n_trazas):
+    """`depurar` es idempotente sobre listas mixtas de datos y trazas (AC-M3, como propiedad)."""
+    items = [{'tipo': 'dato', 'creado_en': '2026-01-01'} for _ in range(n_datos)]
+    items += [{'tipo': 'traza', 'creado_en': '2026-01-01', 'expira_en': '2026-12-31'}
+              for _ in range(n_trazas)]
+    modo, ahora = 'catastrofe_acotada', '2026-06-01'
+    primer = depurar(items, modo, ahora)
+    assert depurar(primer, modo, ahora) == primer

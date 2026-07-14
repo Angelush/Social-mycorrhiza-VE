@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 import pytest
+from hypothesis import given, strategies as st
 
 _SRC = Path(__file__).resolve().parent.parent / "src"
 
@@ -196,3 +197,31 @@ def test_acc6_envelope_limpio_admitido_en_todos_los_modos():
     for m in MODOS:
         res = membrana.admitir(_sobre_membrana(m, {'nota': 'hola'}))
         assert res['admitido'] is True
+
+
+# ============================================================ PB-c1/c2 — propiedades de `modo` (TA.8)
+@given(modo=st.sampled_from(MODOS), hops=st.integers(min_value=0, max_value=20))
+def test_pbc1_validar_modo_rechaza_no_recorta(modo, hops):
+    """Para cualquier modo y `max_hops`: si respeta la cota, devuelve el modo; si no, `raise`.
+    En AMBOS casos el request NO se muta (rechaza, no recorta — C-c2)."""
+    req = {'modo': modo, 'max_hops': hops}
+    copia = dict(req)
+    if hops <= modo_mod.LIMITES[modo]['max_hops']:
+        assert validar_modo(req) == modo
+    else:
+        with pytest.raises(ErrorDeModo):
+            validar_modo(req)
+    assert req == copia
+
+
+def test_pbc2_monotonia_limites_fuente_unica():
+    """`LIMITES` monótona con la hostilidad + coherencia de las vistas derivadas (fuente única)."""
+    for m in MODOS:
+        assert modo_mod.TOPE_VELOCIDAD_MAX[m] == modo_mod.LIMITES[m]['tope_velocidad_max']
+        assert modo_mod.ESTRICTEZ_VELOCIDAD[m] == modo_mod.LIMITES[m]['estrictez_velocidad']
+    for i in range(len(MODOS) - 1):
+        menos, mas = MODOS[i], MODOS[i + 1]
+        for clave in ('retencion_max_dias', 'retencion_trazas_dias', 'max_hops',
+                      'max_payload_bytes', 'max_proposals', 'tope_velocidad_max'):
+            assert modo_mod.LIMITES[menos][clave] >= modo_mod.LIMITES[mas][clave]
+        assert modo_mod.LIMITES[menos]['estrictez_velocidad'] <= modo_mod.LIMITES[mas]['estrictez_velocidad']

@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import pytest
+from hypothesis import given, strategies as st
 
 _MOD = Path(__file__).resolve().parent.parent / "src" / "stigmergy" / "estigmergia.py"
 _spec = importlib.util.spec_from_file_location("estigmergia", _MOD)
@@ -96,3 +97,29 @@ def test_ac_f4_paso_maquinaria_restricciones():
     req_b = _req(trazas=trazas_b)
     with pytest.raises(ErrorDeBrechaEstigmergia):
         sentir(req_b)
+
+
+# ============================================================ PB-f1 — propiedades de convergencia (TA.8)
+@given(n=st.integers(1, 30), cap=st.integers(1, 10))
+def test_pbf1_cap_acota_rafaga(n, cap):
+    """El cap de velocidad acota la ráfaga: sentidas presencia == min(n, cap); resto amortiguado."""
+    trazas = [_trace(about="zona:z1", senal="presencia", fuerza=5, creado_en=1000,
+                     celula_id="barrio-1") for _ in range(n)]
+    req = _req(trazas=trazas, cell="barrio-1", velocity_cap=cap)
+    res = sentir(req)
+    presencias = [s for s in res["sentidas"] if s["senal"] == "presencia"]
+    assert len(presencias) == min(n, cap)
+    assert res["traza_auditoria"]["amortiguadas_velocidad"] == max(0, n - cap)
+
+
+@given(n=st.integers(1, 5))
+def test_pbf1_persona_siempre_rechazada(n):
+    """Cualquier ráfaga que contenga una traza `about: persona:*` se rechaza en bloque."""
+    trazas = [_trace(about="persona:fulano", senal="presencia", fuerza=5, creado_en=1000,
+                     celula_id="barrio-1")]
+    for i in range(n - 1):
+        trazas.append(_trace(about=f"zona:z_{i}", senal="presencia", fuerza=5, creado_en=1000,
+                             celula_id="barrio-1"))
+    req = _req(trazas=trazas, cell="barrio-1")
+    with pytest.raises(ErrorDeBrechaEstigmergia):
+        sentir(req)

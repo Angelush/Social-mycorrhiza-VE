@@ -114,6 +114,13 @@ MARKET_KEYS = [
     'pago', 'cobro', 'usd', 'ves', 'dolar', 'dolares', 'bolivar', 'bolivares',
 ]
 
+# Alias castellano de trazabilidad con la spec del área e (doble moneda). MARKET_KEYS ya incluye
+# los tokens de denominación bilingües (usd/ves/dolar/dolares/bolivar/bolivares, añadidos en TA.2),
+# de modo que la moneda solo es representable en la sala `precio_de_mercado`: `don_comunal` e
+# `igualdad` la rechazan (membrana direccional, C-e6, AC-e2). Misma lista, misma referencia; fuera
+# del bloque firewall compartido → md5 5d693ec intacto.
+CLAVES_MERCADO = MARKET_KEYS
+
 # Libro de reciprocidad: prohibido solo en la sala don_comunal (bilingüe)
 RECIPROCITY_LEDGER_KEYS = [
     'debt', 'deuda', 'owed', 'debe', 'balance', 'saldo',

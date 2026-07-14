@@ -3,6 +3,7 @@
     "campana_id": "campB",
     "celula_id": "barrio-1",
     "tipo": "monetario",
+    "moneda": "VES",
     "umbral": 5,
     "bono_patrocinador_centavos": 1000,
     "expira_en": "2026-12-31T00:00:00Z",
@@ -16,6 +17,7 @@
   "expected": {
     "campana_id": "campB",
     "celula_id": "barrio-1",
+    "moneda": "VES",
     "estado": "reembolsa",
     "comprometidos_distintos": 3,
     "umbral": 5,

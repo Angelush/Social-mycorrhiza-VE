@@ -39,6 +39,7 @@ def campanas(draw):
     bono = draw(st.integers(min_value=0, max_value=99999)) if tipo == "monetario" else 0
     return {
         "campana_id": "c", "celula_id": "cell", "tipo": tipo,
+        "moneda": draw(st.sampled_from(["USD", "VES"])),
         "umbral": draw(st.integers(min_value=1, max_value=8)),
         "bono_patrocinador_centavos": bono,
         "expira_en": "2026-12-31T00:00:00Z", "compromisos": compromisos,

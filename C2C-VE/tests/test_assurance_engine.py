@@ -49,13 +49,13 @@ def _scan_keys(obj):
 
 # ---- fixtures -----------------------------------------------------------------
 TEST_A = {
-    "campana_id": "campA", "celula_id": "barrio-1", "tipo": "binario",
+    "campana_id": "campA", "celula_id": "barrio-1", "tipo": "binario", "moneda": "USD",
     "umbral": 3, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
     "compromisos": [{"compromiso_id": f"p{i}", "ficha_participante": t}
                      for i, t in enumerate(["t1", "t2", "t3", "t4"])],
 }
 TEST_B = {
-    "campana_id": "campB", "celula_id": "barrio-1", "tipo": "monetario",
+    "campana_id": "campB", "celula_id": "barrio-1", "tipo": "monetario", "moneda": "VES",
     "umbral": 5, "bono_patrocinador_centavos": 1000, "expira_en": "2026-12-31T00:00:00Z",
     "compromisos": [
         {"compromiso_id": "p1", "ficha_participante": "t1", "monto_centavos": 2000},
@@ -159,11 +159,11 @@ def test_ac5b_reject_forbidden_field_pledge():
 
 
 def test_ac5c_cross_campaign_independence():
-    c1 = {"campana_id": "c1", "celula_id": "b2", "tipo": "binario", "umbral": 2,
+    c1 = {"campana_id": "c1", "celula_id": "b2", "tipo": "binario", "moneda": "USD", "umbral": 2,
           "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
           "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1"},
                            {"compromiso_id": "p2", "ficha_participante": "t9"}]}
-    c2 = {"campana_id": "c2", "celula_id": "b3", "tipo": "binario", "umbral": 4,
+    c2 = {"campana_id": "c2", "celula_id": "b3", "tipo": "binario", "moneda": "USD", "umbral": 4,
           "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
           "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1"},
                            {"compromiso_id": "p2", "ficha_participante": "t5"}]}

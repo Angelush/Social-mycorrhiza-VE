@@ -131,6 +131,41 @@ class ErrorDeInvarianteAseguramiento(Exception):
     nunca emitir."""
 
 
+class ErrorDeBrechaAseguramiento(ValueError):
+    """Brecha de dominio-moneda (área e): mezcla de monedas o tasa de cambio
+    incrustada en el payload. Es culpa del LLAMADOR (entrada inválida), no un
+    motor-roto — por eso subclase de ValueError, para que siga siendo atrapable
+    por `except ValueError` como el resto de rechazos de sobre (convención
+    TA.3). El nombre propio lo exige la spec (C-e2); NO confundir con
+    ErrorDeInvarianteAseguramiento (aborto interno, deliberadamente NO-ValueError).
+
+    Reglas de moneda (spec área e):
+    - Toda campaña declara `moneda: 'USD' | 'VES'` (obligatoria).
+    - Compromisos y bono DEBEN coincidir con la moneda de la campaña; mezcla → esta brecha.
+    - El tipo de cambio es irrepresentable: los tokens `tasa_de_cambio`, `fx`,
+      `paralelo`, `bcv`, … se rechazan con esta brecha. Incrustar una tasa es
+      incrustar una decisión política capturable; la conversión es siempre una
+      decisión humana fuera del protocolo."""
+
+
+# Tipo de cambio irrepresentable dentro del motor (área e, C-e3). Taxonomía PRIVADA de Capa 4
+# (fuera del bloque firewall compartido, como MARKET_KEYS en Capa 1): añadirla aquí NO altera el
+# md5 5d693ec de las 6 capas. Se escanea con la maquinaria compartida _key_matches_taxonomy
+# (tokeniza NFD + bigramas + compuesto completo), a cualquier profundidad.
+TASA_KEYS = [
+    'tasa_de_cambio', 'tipo_de_cambio', 'exchange_rate', 'fx', 'paralelo', 'bcv',
+    # Variantes pegadas (un solo token, sin separador): el tokenizador compartido casa por
+    # token/bigrama, así que una clave pegada como `tasadecambio` no coincidiría con el compuesto
+    # `tasa_de_cambio`. Se listan explícitas para cerrar esa vía de evasión (rechazar la forma,
+    # ampliamente — misma postura que el firewall bilingüe del área a).
+    'tasadecambio', 'tipodecambio', 'exchangerate',
+]
+
+# Monedas admitidas: una campaña es mono-moneda (C-e1). El importe va en enteros de unidad mínima
+# (centavos USD / centimos VES) bajo la MISMA clave *_centavos; la moneda la fija este campo.
+MONEDAS = ('USD', 'VES')
+
+
 def _forbidden_key_path(obj) -> "str | None":
     # Recorre toda la estructura (dicts, listas, tuplas) y devuelve la primera clave
     # cuyos tokens normalizados coincidan con la taxonomía por token EXACTO (o
@@ -161,6 +196,27 @@ def _forbidden_key_path(obj) -> "str | None":
     return None
 
 
+def _tasa_key_path(obj) -> "str | None":
+    # Recorre toda la estructura (dicts, listas, tuplas) y devuelve la primera clave cuyos tokens
+    # normalizados coincidan con TASA_KEYS por token EXACTO (o bigrama adyacente / compuesto
+    # completo), o None. Recursivo, para que una tasa escondida a cualquier profundidad
+    # (p.ej. {"datos": {"tasa_de_cambio": 3600}}) también se rechace (área e, failure-model).
+    taxonomy = set(TASA_KEYS)
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if _key_matches_taxonomy(k, taxonomy):
+                return k
+            found = _tasa_key_path(v)
+            if found is not None:
+                return found
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            found = _tasa_key_path(v)
+            if found is not None:
+                return found
+    return None
+
+
 def resolver(campana: dict) -> dict:
     # 1. Validar (rechazar, nunca reparar) ------------------------------------
     if not isinstance(campana, dict):
@@ -174,10 +230,31 @@ def resolver(campana: dict) -> dict:
             validar_modo(campana)
         except ErrorDeModo as _e:
             raise ValueError(str(_e)) from _e
+
+    # Área e: el tipo de cambio es IRREPRESENTABLE. Una clave-tasa a cualquier profundidad (una
+    # conversión disfrazada de dato) → brecha de moneda, ANTES de mirar los importes (AC-D3).
+    tasa_key = _tasa_key_path(campana)
+    if tasa_key is not None:
+        raise ErrorDeBrechaAseguramiento(
+            f"tipo de cambio irrepresentable en el motor: clave {tasa_key!r} "
+            f"(la conversión es una decisión humana fuera del protocolo)")
+
     bad_key = _forbidden_key_path(campana)
     if bad_key is not None:
         raise ValueError(
             f"campana contiene una clave prohibida (con forma de vigilancia): {bad_key!r}")
+
+    # Área e: moneda obligatoria y mono-moneda (C-e1, AC-e1). El bono opcionalmente declara su
+    # propia moneda (`bono_moneda`); si lo hace, DEBE coincidir (mezcla → brecha, AC-D1).
+    moneda = campana.get("moneda")
+    if moneda not in MONEDAS:
+        raise ErrorDeBrechaAseguramiento(
+            f"moneda obligatoria y debe ser una de {MONEDAS}; se recibió {moneda!r}")
+    bono_moneda = campana.get("bono_moneda")
+    if bono_moneda is not None and bono_moneda != moneda:
+        raise ErrorDeBrechaAseguramiento(
+            f"el bono del patrocinador ({bono_moneda!r}) no coincide con la moneda de la "
+            f"campaña ({moneda!r}); una campaña es mono-moneda (sin conversión)")
 
     for key in ("campana_id", "celula_id"):
         val = campana.get(key)
@@ -230,6 +307,15 @@ def resolver(campana: dict) -> dict:
         token = p.get("ficha_participante")
         if not isinstance(token, str) or not token.strip():
             raise ValueError("ficha_participante debe ser un str no vacío")
+
+        # Área e: un compromiso puede declarar su propia moneda; si lo hace DEBE coincidir con la
+        # de la campaña. Mezcla → brecha (AC-D1). El motor no convierte: rechaza para que el
+        # llamador (humano) decida (C-e2, rechazar-no-reparar).
+        cmp_moneda = p.get("moneda")
+        if cmp_moneda is not None and cmp_moneda != moneda:
+            raise ErrorDeBrechaAseguramiento(
+                f"compromiso {pid!r} en moneda {cmp_moneda!r} no coincide con la moneda de la "
+                f"campaña ({moneda!r}); una campaña es mono-moneda (sin conversión)")
 
         amount = p.get("monto_centavos", 0)
         if tipo == "monetario":
@@ -298,6 +384,7 @@ def resolver(campana: dict) -> dict:
     return {
         "campana_id": campana["campana_id"],
         "celula_id": campana["celula_id"],
+        "moneda": moneda,
         "estado": estado,
         "comprometidos_distintos": distinct,
         "umbral": umbral,

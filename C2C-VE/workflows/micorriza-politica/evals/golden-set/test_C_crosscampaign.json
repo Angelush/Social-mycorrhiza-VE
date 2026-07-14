@@ -2,7 +2,7 @@
   "note": "AC5c — dos campañas que comparten ficha_participante t1 se resuelven independientemente; ninguna salida puede contener un agregado entre campañas ni un puntaje por persona.",
   "campaign_1": {
     "input": {
-      "campana_id": "campC1", "celula_id": "barrio-2", "tipo": "binario",
+      "campana_id": "campC1", "celula_id": "barrio-2", "tipo": "binario", "moneda": "USD",
       "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
       "compromisos": [
         {"compromiso_id": "p1", "ficha_participante": "t1"},
@@ -13,7 +13,7 @@
   },
   "campaign_2": {
     "input": {
-      "campana_id": "campC2", "celula_id": "barrio-3", "tipo": "binario",
+      "campana_id": "campC2", "celula_id": "barrio-3", "tipo": "binario", "moneda": "USD",
       "umbral": 4, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
       "compromisos": [
         {"compromiso_id": "p1", "ficha_participante": "t1"},
@@ -24,18 +24,18 @@
   },
   "rejected_inputs": {
     "forbidden_field": {
-      "campana_id": "campC_bad", "celula_id": "barrio-2", "tipo": "monetario",
+      "campana_id": "campC_bad", "celula_id": "barrio-2", "tipo": "monetario", "moneda": "USD",
       "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
       "global_score": {"t1": 0.9},
       "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1", "monto_centavos": 100}]
     },
     "membrane_breach_priced_binary": {
-      "campana_id": "campC_bad2", "celula_id": "barrio-2", "tipo": "binario",
+      "campana_id": "campC_bad2", "celula_id": "barrio-2", "tipo": "binario", "moneda": "USD",
       "umbral": 2, "bono_patrocinador_centavos": 0, "expira_en": "2026-12-31T00:00:00Z",
       "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1", "monto_centavos": 500}]
     },
     "bonus_on_binary": {
-      "campana_id": "campC_bad3", "celula_id": "barrio-2", "tipo": "binario",
+      "campana_id": "campC_bad3", "celula_id": "barrio-2", "tipo": "binario", "moneda": "USD",
       "umbral": 2, "bono_patrocinador_centavos": 500, "expira_en": "2026-12-31T00:00:00Z",
       "compromisos": [{"compromiso_id": "p1", "ficha_participante": "t1"}]
     }

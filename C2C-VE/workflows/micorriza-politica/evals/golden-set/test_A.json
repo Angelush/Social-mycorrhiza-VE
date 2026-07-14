@@ -3,6 +3,7 @@
     "campana_id": "campA",
     "celula_id": "barrio-1",
     "tipo": "binario",
+    "moneda": "USD",
     "umbral": 3,
     "bono_patrocinador_centavos": 0,
     "expira_en": "2026-12-31T00:00:00Z",
@@ -16,6 +17,7 @@
   "expected": {
     "campana_id": "campA",
     "celula_id": "barrio-1",
+    "moneda": "USD",
     "estado": "se_activa",
     "comprometidos_distintos": 4,
     "umbral": 3,

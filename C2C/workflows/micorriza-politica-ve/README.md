@@ -34,6 +34,21 @@ Maquinaria compartida primero y una sola vez: **área a (firewall)** y **área c
 área b (castellanización), área d (trinquete), área e (moneda), área f (convergencia). Tras cada
 área: suite completa en verde antes de la siguiente.
 
+## Convención de uso — doble moneda (área e, sin código)
+
+Una campaña de aseguramiento es **mono-moneda**: declara `moneda: 'USD' | 'VES'` y todos sus
+compromisos y su bono van en esa misma moneda (los importes, en enteros de unidad mínima —
+centavos/céntimos). El motor **no convierte**: el tipo de cambio (BCV vs. paralelo) es irrepresentable
+porque incrustar una tasa es incrustar una decisión política capturable.
+
+**Patrón diáspora:** cuando la diáspora quiere patrocinar en USD junto a una acción local en VES, se
+crean **dos campañas paralelas mono-moneda** (una USD, una VES), **jamás una campaña mixta**. La
+comparación/conversión entre ambas es una decisión humana fuera del protocolo.
+
+**Higiene inflacionaria (convención del llamador, no mecanismo):** para campañas VES conviene un
+`expira_en` corto, porque el motor no modela inflación (sería otra tasa disputada). Señalado en
+`lo-intocable.md`.
+
 ## Gate de esta tarea (TA.1)
 
 - Sub-bundle completo, área por área, con cláusulas-porque en cada `constraints.md`.

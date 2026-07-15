@@ -94,6 +94,76 @@ garantía más débil.
 (`evals/golden-set/{test_A,test_B,test_C,ledger_flow}.json`) — misma clase de regresión que
 TA.6 y con el mismo remedio: actualizar conservando la semántica, no el byte.
 
+### D4 — Multisig de reserva: umbral, roles, rotación — **2026-07-16**
+
+> **LA PROCEDENCIA DE CADA VALOR ES PARTE DEL VALOR.** Solo el umbral es del propietario. Los
+> otros dos los rellenó Opus **por instrucción explícita del propietario** («inventa las demás
+> para seguir con el desarrollo»), para no dejar TB.8 bloqueado. **No son decisiones de
+> gobernanza: son andamios con forma de decisión.** Se marcan aquí porque un valor inventado y
+> uno decidido son indistinguibles dentro de seis meses si nadie escribe cuál fue cuál — el
+> mismo fallo que M9 previene en las verificaciones, y la misma razón por la que la firma de
+> `2026-07-15-sanciones.md` dice cómo se produjo.
+
+**Nada de esto entra en `src/`.** N9: el motor no custodia claves, no firma y no verifica
+quórums de gobernanza. D4 es un **documento** + helpers de verificación. Que estos valores sean
+provisionales no contamina el motor: contamina el documento, y ahí se ve.
+
+| Decisión | Valor | Procedencia | Estado |
+|---|---|---|---|
+| **Umbral** | **3 de 5** | **Propietario, 2026-07-16** | **DECIDIDO** |
+| Roles firmantes | los 5 de abajo | **Opus (relleno)** | **PROVISIONAL** |
+| Rotación | 12 meses escalonada + disparadores | **Opus (relleno)** | **PROVISIONAL** |
+
+**Requisito que M9 manda al documento** (`2026-07-15-sanciones.md`, hallazgos 1 y 5): **ningún
+firmante puede estar designado en la lista SDN**, y esa comprobación **es del comité, no del
+motor**. El motor no criba contra la SDN y no debe: diría «este firmante está limpio» sin poder
+sostenerlo.
+
+**Roles (PROVISIONAL — cargos, JAMÁS nombres, N8):**
+
+1. Coordinación del comité de crédito
+2. Tesorería de la célula
+3. Auditoría interna — miembro **fuera** del comité de crédito
+4. Representación de miembros — elegida por asamblea, **fuera** del comité
+5. Custodia externa — fuera de la operación diaria y **fuera del país**
+
+*Por qué cinco cargos distintos y no cinco personas de confianza:* con 3 de 5, tres firmas
+abren la reserva. Si los cinco cargos fueran capturables por la misma vía (todos del comité,
+todos en la misma ciudad), el umbral sería decorativo — quien capture esa vía tiene tres firmas.
+Los roles 3, 4 y 5 existen para que **ninguna captura de una sola función alcance el quórum**.
+
+**Restricción geográfica derivada del umbral (esta NO es opinión: sale de la aritmética de
+3-de-5, y es la parte de este bloque que más se sostiene):**
+
+- **Ningún lugar puede concentrar 3 firmantes** → una redada, una detención o un allanamiento en
+  un solo sitio no abre la reserva.
+- **Perder un lugar no puede dejar menos de 3** → un apagón, una emigración en bloque o un cierre
+  de frontera no deja la reserva **inaccesible**, que es el fallo simétrico y el que más
+  probablemente ocurra (§6.5, éxodo continuo).
+- Con 5 firmantes y umbral 3: **máximo 2 por localidad ⇒ mínimo 3 localidades**, y el rol 5
+  fuera del país. Es lo que hace que ambas condiciones se cumplan a la vez.
+
+**Rotación (PROVISIONAL):**
+
+- **Periódica:** cada **12 meses**, **escalonada — nunca más de 1 de los 5 en un mismo acto**.
+  Rotar el quórum entero de golpe es el momento exacto en que nadie sabe qué clave es válida.
+- **Disparada por evento** (cualquiera de estos, sin esperar al plazo): cese o cambio del titular
+  del cargo · **salida del titular de la célula** (`exited` — el mismo hecho que registra D6) ·
+  sospecha o constancia de compromiso de una clave · **designación del titular en la lista SDN**
+  (verificada por el comité) · revocación de la licencia general que ampara el riel.
+- **Rotar es generar clave nueva, JAMÁS traspasar la vieja al sucesor.** Una clave que se hereda
+  con el cargo deja firmando a quien ya se fue, y eso no aparece en ningún registro: el sucesor
+  cree que tiene una clave y en realidad tiene dos titulares. Es la forma de ST-d5.8 (el aval que
+  no caduca) aplicada a una firma.
+
+**Caducidad — se re-verifica cuando el sistema esté terminado (instrucción del propietario,
+2026-07-16):** los tres valores se revisan **antes de la Etapa 0 de despliegue** y, en todo caso,
+**cuando Fases 1–3 estén cerradas y exista una red real con miembros reales**. *Porque:* el
+umbral y los roles solo se pueden calibrar contra una célula concreta — cuántos miembros tiene,
+dónde están y quién puede sostener un cargo. Elegirlos hoy contra una red que no existe es
+elegirlos contra una ficción. **Los `PROVISIONAL` de arriba se convierten en decisión del
+propietario, o se sustituyen; no se ascienden por inercia ni porque «llevan meses ahí».**
+
 ## 3. Reconciliación spec↔código pendiente (manda el código)
 
 Ya cazadas en TB.0; cada una se resuelve en su delta, por escrito:

@@ -48,7 +48,7 @@ import copy
 import os as _os
 import sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-from firewall.herencia import _key_matches_taxonomy
+from firewall.herencia import FORBIDDEN_KEYS, _key_matches_taxonomy, _value_has_identity_shape
 
 MONEDAS = ("USD", "VES")
 
@@ -74,6 +74,105 @@ def canonical(x) -> bytes:
 
 def _is_strict_int(x) -> bool:
     return isinstance(x, int) and not isinstance(x, bool)
+
+# ── D5 — `referencias_comerciales`: la ÚNICA superficie de forma libre de la Fase 2 ──────────
+#
+# Esquema cerrado de cada referencia. Las cinco claves están auditadas contra FORBIDDEN_KEYS
+# por test (AC-d5.5), no por lectura: `veto`, `sancion` y `penalizacion` SIGUEN en la taxonomía
+# heredada y siguen siendo vocabulario natural de este dominio (el comité vetea). La colisión
+# está dormida solo mientras se elijan bien los nombres — por eso el campo se llama `avalista`
+# y no `veto_del_comite`. Si algún día una clave necesaria colisiona: se renombra LA CLAVE,
+# jamás la taxonomía (E-d5.2/N-d9.1 — es compartida con seis capas C2C-VE donde esos tokens sí
+# nombran vigilancia).
+_REF_KEYS_OBLIGATORIAS = ("avalista", "relacion_declarada", "antiguedad_meses")
+_REF_KEYS_OPCIONALES = ("nota",)
+_RELACIONES = ("proveedor", "cliente", "ambos")
+
+
+def _escanear_forma_libre(nodo) -> None:
+    """Firewall heredado (D9) sobre estructura de forma libre: claves y valores, recursivo.
+
+    VIVE AQUÍ Y NO EN `firewall.herencia` a propósito. La spec §4 nombra
+    `_contains_forbidden_key`, pero D9 no lo heredó: el escáner recursivo vive FUERA del bloque
+    `BEGIN…END` en las seis capas C2C-VE, y meterlo dentro cambiaría los 3023 bytes y el md5
+    5d693ec de la séptima copia — que es exactamente lo que C-d9.1 prohíbe (cambian las siete o
+    no cambia ninguna). Además AC-d9.2 asserta activamente que no está ahí. El bloque no se
+    toca; se CONSUME su maquinaria, que es el patrón que `_TASA_KEYS` (D1) ya usa.
+
+    Escanea las dos superficies porque el dossier entra por las dos:
+      - CLAVES contra FORBIDDEN_KEYS (`puntuacion`, `scoreRelacional`, `lista_negra`…).
+      - VALORES con forma de identidad, INCLUIDA la `nota` de texto libre (F-d5.3): «Pedro,
+        V-12.345.678, lleva 3 años vendiéndonos» es el dossier entrando por el único campo que
+        nadie valida.
+    """
+    if isinstance(nodo, dict):
+        for clave, valor in nodo.items():
+            if _key_matches_taxonomy(clave, FORBIDDEN_KEYS):
+                raise ValueError("referencias_comerciales: firewall")
+            _escanear_forma_libre(valor)
+    elif isinstance(nodo, list):
+        for item in nodo:
+            _escanear_forma_libre(item)
+    elif _value_has_identity_shape(nodo):
+        raise ValueError("referencias_comerciales: firewall")
+
+
+def _validar_referencias(members: dict, member_id: str, referencias) -> None:
+    """Valida la lista de referencias del comité. FIREWALL PRIMERO, ESQUEMA CERRADO DESPUÉS.
+
+    EL ORDEN NO ES ESTILO — decide si D9 es real o decorativo. `puntuacion` es a la vez clave
+    prohibida por la taxonomía Y clave desconocida para el esquema cerrado. Si el esquema
+    validase primero, AC-d5.3 pasaría en VERDE con el firewall completamente descableado — que
+    es literalmente F-d5.4, el fallo que AC-d5.3 existe para detectar. El test certificaría la
+    defensa que falta. Por eso el escáner corre sobre la estructura ENTERA antes de que el
+    esquema mire una sola clave, y los mensajes son DISTINGUIBLES (`firewall` vs `clave
+    desconocida`): sin esa distinción el AC no sabe quién mató al vector, y esa distinción ES
+    AC-d9.5.
+
+    Las dos defensas quedan vivas y cada una es alcanzable por separado. La lista blanca es la
+    defensa fuerte (H1: el muro es el cierre de esquema; la taxonomía es lint secundario), pero
+    aquí se usan las dos porque esta superficie es la que sí recibe forma libre.
+    """
+    if not isinstance(referencias, list):
+        raise ValueError("referencias_comerciales")
+
+    # 1) FIREWALL — sobre todo el árbol, antes que nada. Ver arriba.
+    _escanear_forma_libre(referencias)
+
+    # 2) ESQUEMA CERRADO — lista blanca, clave desconocida rechazada (C-d5.3).
+    for ref in referencias:
+        if not isinstance(ref, dict):
+            raise ValueError("referencias_comerciales: referencia")
+        for clave in ref:
+            if clave not in _REF_KEYS_OBLIGATORIAS and clave not in _REF_KEYS_OPCIONALES:
+                raise ValueError("referencias_comerciales: clave desconocida")
+        for clave in _REF_KEYS_OBLIGATORIAS:
+            if clave not in ref:
+                raise ValueError("referencias_comerciales: clave ausente")
+
+        avalista = ref["avalista"]
+        if not isinstance(avalista, str) or not avalista:
+            raise ValueError("referencias_comerciales: avalista")
+        if avalista not in members:
+            raise ValueError("referencias_comerciales: avalista")
+        if avalista == member_id:
+            # N-d5.4 — un aval de uno mismo no es información; admitirlo invita a inflar la
+            # lista y convierte el conteo en el score que N-d5.1 prohíbe. Solo impide el
+            # auto-aval TRIVIAL: un anillo de tres empresas avalándose mutuamente pasa todos
+            # los checks y lo caza el comité, que conoce a la gente — o no lo caza nadie
+            # (ST-d5.2, Señalado, no se fake-resuelve).
+            raise ValueError("referencias_comerciales: auto-aval")
+
+        if ref["relacion_declarada"] not in _RELACIONES:
+            raise ValueError("referencias_comerciales: relacion_declarada")
+
+        antiguedad = ref["antiguedad_meses"]
+        if not _is_strict_int(antiguedad) or antiguedad < 0:
+            raise ValueError("referencias_comerciales: antiguedad_meses")
+
+        if "nota" in ref and not isinstance(ref["nota"], str):
+            raise ValueError("referencias_comerciales: nota")
+
 
 def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict, dict]:
     if not _is_strict_int(ts):
@@ -202,6 +301,15 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             "balance_cents": 0
         }
 
+        # D5 — el veteo relacional del comité. Se valida DESPUÉS de insertar al miembro para
+        # que el auto-aval falle como auto-aval y no como «avalista inexistente»: el mensaje es
+        # lo que el comité lee cuando el motor le dice que no.
+        if "referencias_comerciales" in payload_copy:
+            refs = payload_copy["referencias_comerciales"]
+            _validar_referencias(new_state["members"], member_id, refs)
+            if refs:
+                new_state["members"][member_id]["referencias_comerciales"] = refs
+
     elif kind == "member_updated":
         member_id = payload_copy.get("member_id")
         changes = payload_copy.get("changes")
@@ -238,6 +346,26 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
         m["credit_min_cents"] = new_min
         m["credit_max_cents"] = new_max
         m["status"] = new_status
+
+        # D5 — `allowed_keys` NO SE TOCA (AC-d9.6: los esquemas cerrados heredados ni se
+        # escanean ni se relajan; la lista blanca es la defensa más fuerte que hay). Las
+        # referencias entran por su propio parámetro, hermano de `ratified_by`.
+        #
+        # Clave ausente = «no las toques»; `[]` = «vacíala». Sin esa distinción, toda
+        # actualización de línea de crédito borraría el veteo EN SILENCIO.
+        if "referencias_comerciales" in payload_copy:
+            refs = payload_copy["referencias_comerciales"]
+            _validar_referencias(new_state["members"], member_id, refs)
+            if refs:
+                m["referencias_comerciales"] = refs
+            else:
+                # «Sin referencias» tiene UNA sola representación: la clave ausente. Guardar
+                # `[]` haría que un miembro creado sin referencias y uno vaciado a propósito
+                # difirieran en el estado sin diferir en el hecho — una distinción sin
+                # significado es una discrepancia esperando a pasar. El EVENTO sí conserva el
+                # acto de vaciar (`[]` en el payload, en la cadena): el evento es el acto, el
+                # estado es el hecho.
+                m.pop("referencias_comerciales", None)
 
     elif kind == "obligation_recorded":
         ob = payload_copy.get("obligation")
@@ -428,8 +556,23 @@ def create_cell(cell_id: str, params: dict, ratified_by: str, ts: int) -> tuple[
     }
     return _apply(None, "cell_created", payload, ts)
 
-def add_member(state: dict, member: dict, ratified_by: str, ts: int) -> tuple[dict, dict]:
-    """Add a new member with optional initial credit lines."""
+def add_member(state: dict, member: dict, ratified_by: str, ts: int, *,
+               referencias_comerciales: list | None = None) -> tuple[dict, dict]:
+    """Add a new member with optional initial credit lines.
+
+    D5 — `referencias_comerciales` es el input del veteo del comité, y va como PARÁMETRO
+    HERMANO de `ratified_by`, jamás como clave dentro de `member`. No es estilo: `member` se
+    reconstruye clave a clave más abajo (`resolved_member`), así que unas referencias metidas
+    ahí **se perderían sin un solo error** — firewall nunca invocado, referencias nunca
+    guardadas, suite verde. Es F-d5.4 servido en bandeja. La spec §2 ya lo dice al llamarlas
+    «parte del payload que ya lleva `ratified_by`».
+
+    Keyword-only y OPCIONAL (P-d5.1): el veteo ES la reunión del comité, no el campo. Exigirlo
+    haría que el comité invente referencias para dar de alta a quien conoce de toda la vida —
+    el campo pasaría de informar el juicio a SUSTITUIRLO con teatro (F-d5.6). Aquí sí hay
+    default y en `scope` no, y la diferencia es real: «no hay referencias» es un hecho del
+    mundo; un `scope` ausente era una pregunta sin responder.
+    """
     if not isinstance(member, dict):
         raise ValueError("member")
     member_id = member.get("id")
@@ -460,15 +603,32 @@ def add_member(state: dict, member: dict, ratified_by: str, ts: int) -> tuple[di
         "member": resolved_member,
         "ratified_by": ratified_by
     }
+    # Ausente, no `None` (patrón `ancla` de TB.7): una clave con `None` invita a rellenarla, y
+    # además `cell_created` no se toca → los goldens NO cambian por construcción. Si la suite
+    # pidiera regenerar un golden, algo se coló: se investiga, no se regenera.
+    if referencias_comerciales is not None:
+        payload["referencias_comerciales"] = referencias_comerciales
     return _apply(state, "member_added", payload, ts)
 
-def update_member(state: dict, member_id: str, changes: dict, ratified_by: str, ts: int) -> tuple[dict, dict]:
-    """Apply administrative changes to credit limits or status."""
+def update_member(state: dict, member_id: str, changes: dict, ratified_by: str, ts: int, *,
+                  referencias_comerciales: list | None = None) -> tuple[dict, dict]:
+    """Apply administrative changes to credit limits or status.
+
+    D5 — mismo parámetro hermano que en `add_member`, y por una razón adicional: `allowed_keys`
+    de `changes` es `{credit_min_cents, credit_max_cents, status}` con `issubset`, así que unas
+    referencias metidas en `changes` darían `ValueError("changes")`. La lista blanca heredada
+    NO se relaja para hacerles sitio (AC-d9.6): es la defensa más fuerte del ledger.
+
+    `None` = «no las toques» · `[]` = «vacíala». Sin esa distinción, cada ajuste de línea de
+    crédito borraría el veteo en silencio.
+    """
     payload = {
         "member_id": member_id,
         "changes": changes,
         "ratified_by": ratified_by
     }
+    if referencias_comerciales is not None:
+        payload["referencias_comerciales"] = referencias_comerciales
     return _apply(state, "member_updated", payload, ts)
 
 def record_obligation(state: dict, obligation: dict, ts: int) -> tuple[dict, dict]:
@@ -583,7 +743,7 @@ def member_statement(state: dict, member_id: str, scope: str, solicitante: str |
     owed_to = sum(o["amount_cents"] for o in state["obligations"].values() if o["creditor"] == member_id)
     owed_by = sum(o["amount_cents"] for o in state["obligations"].values() if o["debtor"] == member_id)
     projected = m["balance_cents"] + owed_to - owed_by
-    return {
+    salida = {
         "member_id": member_id,
         "status": m["status"],
         "balance_cents": m["balance_cents"],
@@ -593,6 +753,25 @@ def member_statement(state: dict, member_id: str, scope: str, solicitante: str |
         "owed_to_cents": owed_to,
         "projected_cents": projected
     }
+
+    # D5 — las referencias SOLO para el comité (C-d5.5). La rama no-`publico` servía a `miembro`
+    # y a `comite_credito` a la vez; se parte aquí, y es criterio, no mecánica:
+    #
+    # EL MIEMBRO NO VE QUIÉN LE AVALA. «Quién avala a quién» es el mapa de la red (F-d5.7, N7):
+    # público es la lista de a quién presionar para llegar a quién. Y dárselo al PROPIO avalado
+    # convierte el aval en una posición negociable —«sé que me avalaste»— y por tanto
+    # presionable. El comité las lee porque decide; el miembro no decide.
+    #
+    # Se devuelven TAL CUAL se guardaron, sin derivar nada de ellas (C-d5.1): ni `n_avales`, ni
+    # `antiguedad_media`, ni «confianza». Cualquier función que las tome y devuelva un número ES
+    # un score, se llame como se llame (H1) — y AC-8 lo fija por tipo de salida y por AST, no
+    # por una lista de nombres prohibidos. Que el comité cuente avalistas y ordene mentalmente
+    # es SU JUICIO y es el diseño (ST-d5.1): la línea es que el SISTEMA no compute.
+    #
+    # `deepcopy` porque una vista no le da al llamador un asa sobre el estado.
+    if scope == "comite_credito" and "referencias_comerciales" in m:
+        salida["referencias_comerciales"] = copy.deepcopy(m["referencias_comerciales"])
+    return salida
 
 def _fmt_cents(cents: int, moneda: str) -> str:
     """Formatea un importe con el símbolo de la moneda de la CÉLULA (C-d1.6).

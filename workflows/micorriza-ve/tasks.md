@@ -45,10 +45,11 @@
 | TB.3 | **D2** — ledger append-only hash-encadenado + `anclar()` pura | TB.2 | evidencia inviolable | TB.2 | **alto** | AC-7 (anclar determinista); suite |
 | TB.4 | **D3** — scope `comite_credito` en consultas de saldo; seudonimización de exportes; test de no-exposición saldo+identidad | TB.3 | visibilidad restringida | TB.3 | **alto** | AC-7; suite |
 | TB.5 | **D5** — esquema `referencias_comerciales` (sin score) como input del comité | TB.2 | veteo relacional | TB.2 | medio | AC-8 (N2); suite |
-| TB.6 | **D6+D8** — `salida_con_saldo` + `puente.pausar()` reversible, AMBAS por la puerta de ratificación existente (M8); la pausa no detiene el crédito interno | TB.3 | ops de borde seguras | TB.3 | **alto** | AC-7; suite |
+| TB.6 | **D6** — `salida_con_saldo` por la puerta de ratificación existente (M8); `exited` fuera de la escalera sancionadora | TB.3 | salida de borde segura | TB.3 | **alto** | AC-7; suite |
+| TB.6b | **D8** — `puente.pausar()` reversible por la misma puerta (M8); la pausa no detiene el crédito interno (I-VE7); **M9**: verificación regulatoria fechada previa | TB.6, M9 | pausa del puente | TB.6, **M9** | alto + humano | AC-d68.5/d68.9; suite |
 | TB.7 | **D7** — `exportar_registros(miembro, periodo)` → CSV/JSON limpio | TB.4 | exportes fiscales | TB.4 | medio | AC-7 (seudonimización si público); suite |
 | TB.8 | **D4** — multisig: documento de gobernanza (umbral, firmantes, rotación) + helpers de verificación; **M9**: verificación regulatoria fechada previa | TB.1, M9 | gobernanza de reserva | TB.1 | alto + humano | doc presente; helpers testeados; motor sin claves (N9) |
-| TB.9 | **D10** — branding + README B2B-VE + test de conservación a escala de hiperinflación | TB.2–TB.8 | B2B-VE completo | TB.2–TB.8 | medio | AC-4, AC-9; suite completa |
+| TB.9 | **D10** — branding + README B2B-VE + test de conservación a escala de hiperinflación | TB.2–TB.8 (incl. TB.6b) | B2B-VE completo | TB.2–TB.8, TB.6b | medio | AC-4, AC-9; suite completa |
 
 ## Fase 3 — Sim-VE (tras Fases 1 y 2)
 
@@ -63,7 +64,7 @@
 
 | ID | Tarea | Regla |
 |---|---|---|
-| TP.1 | `docs/verificaciones/AAAA-MM-DD-*.md` — re-verificación fechada de sanciones/fiscal/cripto ANTES de D4/D8 y de toda Etapa de despliegue | M9; sin datos personales (N8) |
+| TP.1 | `docs/verificaciones/AAAA-MM-DD-*.md` — re-verificación fechada de sanciones/fiscal/cripto ANTES de D4/D8 y de toda Etapa de despliegue | M9; sin datos personales (N8). **Tensión M9/D8 zanjada por el humano el 2026-07-15:** `tasks.md` ponía D8 en TB.6 con deps solo `TB.3` y TP.1 lo exigía tras M9 — spec contra spec, así que no la zanjaba el ejecutor. **D8 sale a TB.6b con dep `M9` explícita**; TB.6 queda solo-D6 y arranca sin M9 (emigrar no es un evento sancionador). Ver `B2B/workflows/micorriza-ve/d6-d8-bordes/DESIGN-TB6.md` §0. |
 | TP.2 | Sincronización con upstream: `git fetch upstream && git merge` documentado; divergencias al log de conflictos de `context.md` | E4: el fork no escribe upstream |
 | TP.3 | Resolver E2 (alcance castellanización B2B) — bloquea TB.1 | humano |
 | TP.4 | Castellanizar meta-docs heredados (CONTRIBUTING, plantillas .github) | medio; no bloquea Fases 1–3 |

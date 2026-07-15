@@ -88,6 +88,22 @@ _REF_KEYS_OBLIGATORIAS = ("avalista", "relacion_declarada", "antiguedad_meses")
 _REF_KEYS_OPCIONALES = ("nota",)
 _RELACIONES = ("proveedor", "cliente", "ambos")
 
+# D6 — las cuatro resoluciones de una salida, y sus esquemas CERRADOS (lista blanca, patrón
+# `allowed_keys`: la defensa más fuerte del ledger; ver AC-d9.6). El comité dice cuál es; el
+# motor no la deduce del signo del saldo (C-d68.6/F-d68.7) — deducirla sería que el motor decide
+# cómo se resuelve una salida, con consecuencias sobre un avalista que no está en la sala.
+_RESOLUCIONES = {
+    "simple": {"tipo"},
+    "liquidacion_puente": {"tipo", "fondo"},
+    "absorcion_avalista": {"tipo", "avalista"},
+    "plan_de_pago": {"tipo", "plazo_meses"},
+}
+
+# Los estados desde los que un miembro puede seguir operando. Heredado literal de
+# `record_obligation`: se reusa el conjunto en vez de escribir una lista paralela que envejezca
+# aparte. `exited` queda fuera POR CONSTRUCCIÓN, sin código nuevo (ST-d68.4).
+_ESTADOS_OPERATIVOS = {"active", "warned", "line_reduced"}
+
 
 def _escanear_forma_libre(nodo) -> None:
     """Firewall heredado (D9) sobre estructura de forma libre: claves y valores, recursivo.
@@ -189,7 +205,11 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
     state_copy = copy.deepcopy(state) if state is not None else None
     payload_copy = copy.deepcopy(payload)
 
-    ratification_kinds = {"cell_created", "member_added", "member_updated", "clearing_applied", "cell_paused", "cell_resumed"}
+    # D6 — `member_exited` entra en la puerta que YA existe. M8 no pide construir una puerta:
+    # pide no construir una segunda. Una helper que mutara el estado sin pasar por aquí se
+    # saltaría de una vez `ratified_by`, la monotonía de `ts`, el check de `paused`, el
+    # encadenado de hashes y los post-asserts L1/L2 (F-d68.1).
+    ratification_kinds = {"cell_created", "member_added", "member_updated", "clearing_applied", "cell_paused", "cell_resumed", "member_exited"}
     if kind in ratification_kinds:
         ratified_by = payload_copy.get("ratified_by")
         if not isinstance(ratified_by, str) or not ratified_by:
@@ -334,6 +354,20 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             raise ValueError(member_id)
         if "status" in changes:
             curr_status = m["status"]
+            # D6 — `exited` es TERMINAL: no se sale de él. Hoy `ladder.index("exited")` ya
+            # lanzaría, pero POR ACCIDENTE (es el `.index` de una lista, no una decisión) y con
+            # un mensaje que ningún `match=` fija. Un ValueError accidental es indistinguible de
+            # uno intencionado justo el día que alguien reordene el código.
+            #
+            # Solo se bloquea el cambio de ESTADO, no el de líneas: la spec dice «no puede llegar
+            # a él ni salir de él», y eso habla de estados. Prohibir ajustar las líneas de un
+            # `exited` sería alcance que nadie pidió, y L2 las sigue guardando igual.
+            if curr_status == "exited":
+                raise ValueError("exited")
+            # …y no se LLEGA a `exited` por aquí: no está en la lista. `exited` queda fuera de la
+            # escalera SANCIONADORA a propósito (C-d68.3) — `expelled` es su último peldaño, y
+            # emigrar no es una sanción. Confundirlos deja en una cadena append-only la marca de
+            # que a quien se mudó a Bogotá lo expulsaron, y esa marca viaja (U1/F-d68.3).
             if new_status not in ["active", "warned", "line_reduced", "suspended", "expelled"]:
                 raise ValueError("status")
             if new_status != curr_status:
@@ -367,6 +401,72 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
                 # estado es el hecho.
                 m.pop("referencias_comerciales", None)
 
+    elif kind == "member_exited":
+        # D6 — un miembro emigra a mitad de ciclo (§6.5: éxodo continuo). El upstream no tiene
+        # este caso porque España no lo tiene.
+        member_id = payload_copy.get("member_id")
+        resolucion = payload_copy.get("resolucion")
+        if not isinstance(member_id, str) or not member_id:
+            raise ValueError("member_id")
+        if member_id not in new_state["members"]:
+            raise ValueError(member_id)
+        if not isinstance(resolucion, dict):
+            raise ValueError("resolucion")
+        m = new_state["members"][member_id]
+        # No reversible y no repetible (N-d68.5): mueve valor y cierra una cuenta. Se corrige
+        # con asientos nuevos, como los asientos — no borrando la historia de una cadena
+        # append-only.
+        if m["status"] == "exited":
+            raise ValueError("exited")
+        tipo = resolucion.get("tipo")
+        if tipo not in _RESOLUCIONES:
+            raise ValueError("resolucion")
+        if set(resolucion.keys()) != _RESOLUCIONES[tipo]:
+            raise ValueError("resolucion")
+
+        saldo = m["balance_cents"]
+        if tipo == "simple":
+            # `simple` es la salida limpia, y limpia significa saldo cero. Si aceptara un saldo
+            # distinto de 0, la única forma de conservar L1 sería no tocarlo — y eso YA es
+            # `plan_de_pago`, con otro nombre y sin plazo. Dos nombres para un hecho es la
+            # discrepancia esperando a pasar.
+            if saldo != 0:
+                raise ValueError("resolucion")
+        elif tipo == "plan_de_pago":
+            plazo = resolucion["plazo_meses"]
+            if not _is_strict_int(plazo) or plazo <= 0:
+                raise ValueError("plazo_meses")
+            # Y NO SE TOCA EL SALDO (F-d68.8). El plan de pago es un acuerdo FUERA del motor;
+            # «provisionarlo» o «reservarlo» aquí sería inventar un asiento. El saldo negativo
+            # sigue ahí, en un miembro `exited`, porque esa es la verdad.
+        else:
+            # `liquidacion_puente` y `absorcion_avalista` son la MISMA operación de estado —
+            # el saldo del saliente pasa íntegro a otro miembro — y difieren solo en quién es la
+            # contraparte y por qué. Una sola regla: la contraparte HEREDA el saldo, con su
+            # signo. Así L1 se conserva por construcción en vez de por dos casos que hay que
+            # acordarse de cuadrar.
+            clave = "fondo" if tipo == "liquidacion_puente" else "avalista"
+            contraparte_id = resolucion[clave]
+            if not isinstance(contraparte_id, str) or contraparte_id not in new_state["members"]:
+                raise ValueError(clave)
+            if contraparte_id == member_id:
+                raise ValueError(clave)
+            contraparte = new_state["members"][contraparte_id]
+            # Una contraparte `suspended`/`expelled`/`exited` no absorbe nada: sería contagio
+            # hacia alguien que ya está en la escalera, y el impago es contagioso (U2).
+            if contraparte["status"] not in _ESTADOS_OPERATIVOS:
+                raise ValueError(clave)
+            contraparte["balance_cents"] += saldo
+            m["balance_cents"] = 0
+            # Que el saldo QUEPA en las líneas de la contraparte (L2) lo verifica el post-assert
+            # heredado, que además lanza `ValueError(<id de la contraparte>)` — nombra a quien
+            # no cabe, que es lo que AC-d68.3/AC-d68.6 piden. Flag/reject, jamás clamp (M6): un
+            # avalista empujado fuera de sus líneas «porque alguien se fue» es contagio, y el
+            # fondo sin línea ES la verdad (no da abasto) — se capitaliza, no se recorta el
+            # check (ST-d68.1).
+
+        m["status"] = "exited"
+
     elif kind == "obligation_recorded":
         ob = payload_copy.get("obligation")
         if not isinstance(ob, dict):
@@ -387,9 +487,14 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             raise ValueError("debtor")
         d_mem = new_state["members"][debtor]
         c_mem = new_state["members"][creditor]
-        if d_mem["status"] not in {"active", "warned", "line_reduced"}:
+        # D6 — el literal heredado pasa a `_ESTADOS_OPERATIVOS` (mismo conjunto, byte a byte:
+        # cero cambio de comportamiento). Es lo que hace que `exited` quede excluido de recibir
+        # obligaciones nuevas POR CONSTRUCCIÓN, sin código nuevo, y que no exista una lista
+        # paralela que envejezca aparte (ST-d68.4). `settle_obligation` no mira el status: un
+        # `exited` SÍ paga lo suyo — «paying what you owe is always legal» (N-d68.4).
+        if d_mem["status"] not in _ESTADOS_OPERATIVOS:
             raise ValueError(debtor)
-        if c_mem["status"] not in {"active", "warned", "line_reduced"}:
+        if c_mem["status"] not in _ESTADOS_OPERATIVOS:
             raise ValueError(creditor)
         if not _is_strict_int(amount) or amount <= 0:
             raise ValueError("amount_cents")
@@ -630,6 +735,32 @@ def update_member(state: dict, member_id: str, changes: dict, ratified_by: str, 
     if referencias_comerciales is not None:
         payload["referencias_comerciales"] = referencias_comerciales
     return _apply(state, "member_updated", payload, ts)
+
+def salida_con_saldo(state: dict, member_id: str, resolucion: dict, ratified_by: str,
+                     ts: int) -> tuple[dict, dict]:
+    """D6 — registrar la salida de un miembro que emigra, con su saldo resuelto.
+
+    `resolucion` la decide el COMITÉ, no el motor (C-d68.6): `{"tipo": "simple"}` ·
+    `{"tipo": "liquidacion_puente", "fondo": mid}` · `{"tipo": "absorcion_avalista",
+    "avalista": mid}` · `{"tipo": "plan_de_pago", "plazo_meses": int}`.
+
+    El miembro pasa a `exited`, que es TERMINAL y está FUERA de la escalera sancionadora:
+    emigrar no es una sanción (C-d68.3).
+
+    Esta función NO liquida: no toca USDT, ni rieles, ni direcciones, ni claves (N-d68.2/N9).
+    `liquidacion_puente` **registra** que se liquidó — «el núcleo solo registra la obligación
+    saldada» (§3.2). Que el USDT se haya movido de verdad es fe en el comité: no hay oráculo, y
+    fingir uno sería peor (N10).
+
+    Toda la validación vive en `_apply`, que es la vía del `replay`: una validación aquí no
+    protegería a un evento fabricado a mano y metido en el stream.
+    """
+    payload = {
+        "member_id": member_id,
+        "resolucion": resolucion,
+        "ratified_by": ratified_by
+    }
+    return _apply(state, "member_exited", payload, ts)
 
 def record_obligation(state: dict, obligation: dict, ts: int) -> tuple[dict, dict]:
     """Record a trade credit obligation between two members."""

@@ -270,6 +270,25 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
         "create_cell", "add_member", "update_member", "record_obligation",
         "apply_clearing", "settle_obligation", "pause_cell", "resume_cell",
         "replay", "verify_chain", "canonical",
+        # D6 (TB.6) — `salida_con_saldo`. La objeción hay que contestarla, no esquivarla:
+        # DEVUELVE SALDO E IDENTIDAD. Cierto, y no la hace un punto de consulta: devuelve el par
+        # canónico `(state, event)`, el mismo que `add_member` o `settle_obligation`, que también
+        # devuelven un `state` lleno de saldos e identidades reales. Si ese par contara como
+        # salida acotable, los ocho mutadores de arriba estarían mal clasificados desde TB.4.
+        # Lo que decide es el PORQUÉ de C-d3.1, no la forma del valor de retorno:
+        #  1. Un mutador no tiene a quién acotar: quien llama no consulta, RATIFICA — ya pasó la
+        #     puerta de M8 y trae `ratified_by`. Un `scope="publico"` aquí no significaría nada:
+        #     ¿una salida que se ejecuta pero devuelve el saldo tachado? El estado ya está mutado.
+        #  2. Acotar el `state` de vuelta ROMPERÍA `replay`: AC-7 de D6 exige que reconstruya el
+        #     estado byte a byte, y un estado filtrado no es el estado. El muro «cero numéricos»
+        #     aplicado a un mutador mata al paciente (F-d9.1, la clase que el control negativo
+        #     existe para cazar).
+        #  3. La fuga real de una salida no está en su retorno: está en su EVENTO, que lleva
+        #     `member_id` y la `resolucion` — y con ella quién avaló a quién, que D5 reserva al
+        #     comité (C-d5.5). Y el evento YA está cubierto: `anclar` solo emite hashes y
+        #     `exportar_registros` está en CON_SCOPE desde TB.7. Poner scope en el mutador no
+        #     taparía esa fuga; taparla donde ya está tapada es teatro.
+        "salida_con_saldo",
         # D2 (`anclaje.py`) — emiten HASHES y raíces, jamás payloads: no hay identidad ni
         # importe que acotar. `anclar` es read/emit sobre la cadena; `verificar_inclusion` es
         # la función del ÁRBITRO y ni siquiera recibe `events` (C-d2.5). Darles scope no

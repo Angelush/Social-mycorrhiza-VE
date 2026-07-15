@@ -78,6 +78,17 @@ Ni un invariante, ni una firma, ni un test. Concretamente:
 
 ## 5. Firma
 
-- **Leído y asumido por:** ______________________  **Fecha:** __________
-- ☐ Me basta para construir D8 y documentar D4.
+- **Asumido por:** Angelush (propietario del fork)  **Fecha:** 2026-07-15
+- ☑ **Me basta para construir D8 y documentar D4.**
 - ☐ No me basta: quiero asesoría colegiada antes de ______________________.
+
+**Procedencia de esta firma (que conste, porque es lo que la hace valer algo):** la decisión es
+del propietario, dictada a Claude en conversación el 2026-07-15 tras recibir el resumen de
+hallazgos; **la transcripción es de Claude**. El commit que la registra va bajo la identidad git
+del propietario. **No consta que el propietario haya leído el documento íntegro.**
+
+*Por qué se escribe esto en vez de una firma limpia:* «asumido» es una declaración sobre una
+persona, y la única forma de que no sea folclore dentro de seis meses es que diga **cómo** se
+produjo. Una firma indistinguible de una lectura completa, cuando no lo fue, es exactamente el
+fallo que M9 previene — con formato de verificación y todo. Si el propietario lee el documento y
+quiere una firma sin esta nota, la borra él: **ese acto sí sería suyo**.

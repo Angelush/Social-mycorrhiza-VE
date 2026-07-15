@@ -7,6 +7,8 @@ de los miembros de la célula.
 
 import hashlib
 import importlib.util
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -242,12 +244,20 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
     listas ROMPE este test el día que se escribe, obligando a su autor a decidir.
     """
     import inspect
-    publicas = {n for n in dir(led)
+    # Se enumeran los TRES módulos del fork, no solo el ledger. F-d7.5 promete que este test
+    # cubre `exportar_registros` «automáticamente, por eso está escrito por enumeración» — pero
+    # D7 vive en su propio módulo (patrón de `anclaje.py`: no tiene la forma
+    # `op(state,…)->(new_state,event)` y meterla en el ledger invita a darle un `ratified_by`).
+    # Enumerar un solo módulo haría FALSA esa promesa. Se adapta el test, no la geometría del
+    # módulo — y de paso queda cubierto `anclaje.py`, que hasta TB.7 no enumeraba nadie.
+    modulos = [led, _load("anclaje_d3", "src/ledger/anclaje.py"),
+               _load("exportes_d3", "src/ledger/exportes.py")]
+    publicas = {n for m in modulos for n in dir(m)
                 if not n.startswith("_")
-                and inspect.isfunction(getattr(led, n))
-                and getattr(led, n).__module__ == led.__name__}
+                and inspect.isfunction(getattr(m, n))
+                and getattr(m, n).__module__ == m.__name__}
 
-    CON_SCOPE = {"member_statement", "render_statement"}
+    CON_SCOPE = {"member_statement", "render_statement", "exportar_registros"}
 
     SIN_SCOPE = {
         # ST-d3.4 — vista INTERNA: es el input del solver, que corre DENTRO de la célula.
@@ -260,6 +270,11 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
         "create_cell", "add_member", "update_member", "record_obligation",
         "apply_clearing", "settle_obligation", "pause_cell", "resume_cell",
         "replay", "verify_chain", "canonical",
+        # D2 (`anclaje.py`) — emiten HASHES y raíces, jamás payloads: no hay identidad ni
+        # importe que acotar. `anclar` es read/emit sobre la cadena; `verificar_inclusion` es
+        # la función del ÁRBITRO y ni siquiera recibe `events` (C-d2.5). Darles scope no
+        # protegería nada y rompería al árbitro, que es a quien sirven.
+        "anclar", "prueba_de_inclusion", "verificar_inclusion",
     }
 
     sin_clasificar = publicas - CON_SCOPE - SIN_SCOPE
@@ -268,28 +283,74 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
         f"dale `scope` y añádela a CON_SCOPE. Si no lo es, añádela a SIN_SCOPE CON EL MOTIVO "
         f"escrito. No la añadas a SIN_SCOPE para poner el test verde: esa decisión es el delta."
     )
+    def _buscar(nombre):
+        for m in modulos:
+            if hasattr(m, nombre):
+                return getattr(m, nombre)
+        raise AssertionError(nombre)
+
     for nombre in CON_SCOPE:
-        assert "scope" in inspect.signature(getattr(led, nombre)).parameters
+        params = inspect.signature(_buscar(nombre)).parameters
+        assert "scope" in params, f"{nombre} está en CON_SCOPE pero no acepta scope"
+        # …y sin default: un default es la configuración que nadie revisa (C-d3.1/F-d3.1).
+        assert params["scope"].default is inspect.Parameter.empty, \
+            f"{nombre}: `scope` tiene default — el delta queda instalado y desactivado a la vez"
 
     state = _crear_estado_base()
-    state, _ = led.record_obligation(
+    state, ev = led.record_obligation(
         state, {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 5000}, 1050)
     ids_reales = set(state["members"])
+    eventos = [ev]
+
+    # Cada firma se invoca con lo suyo; lo que se asevera es idéntico para todas.
+    _INVOCAR = {
+        "member_statement":   lambda f, mid: f(state, mid, "publico"),
+        "render_statement":   lambda f, mid: f(state, mid, "publico"),
+        "exportar_registros": lambda f, mid: f(state, eventos, mid, 0, 9999, "publico"),
+    }
+    assert set(_INVOCAR) == CON_SCOPE, "toda función con scope necesita su invocación aquí"
 
     for nombre in sorted(CON_SCOPE):
         for mid in sorted(ids_reales):
-            salida = getattr(led, nombre)(state, mid, "publico")
-            claves, valores = _recorre(salida)
-            texto = str(salida)
-            # Ni identidad…
-            assert not (ids_reales & claves), f"{nombre}: member_id como clave bajo publico"
-            assert not (ids_reales & {v for v in valores if isinstance(v, str)}), \
-                f"{nombre}: member_id como valor bajo publico"
-            assert not any(m in texto for m in ids_reales), f"{nombre}: identidad en el texto"
-            # …ni NINGÚN número. El muro es el TIPO, no una lista de importes conocidos:
-            # comparar contra {5000, -5000, …} es la lista que envejece que este AC existe para
-            # evitar — un saldo de 0, o un importe que el fixture no usa, pasaría limpio.
-            # Bajo `publico` no hay nada numérico que devolver, así que la regla es total.
-            # (Descubierto por MUTACIÓN: filtrar balance_cents=0 pasaba este test.)
-            numeros = [v for v in valores if isinstance(v, (int, float)) and not isinstance(v, bool)]
-            assert not numeros, f"{nombre}: valor numérico {numeros} bajo publico — ¿un importe?"
+            salida = _INVOCAR[nombre](_buscar(nombre), mid)
+            texto = salida if isinstance(salida, str) else str(salida)
+
+            # 1) IDENTIDAD — vale para toda forma de salida: búsqueda de subcadena sobre la
+            #    salida CRUDA, así que da igual que sea dict, markdown o CSV.
+            assert not any(m in texto for m in ids_reales), \
+                f"{nombre}: identidad real en la salida publico"
+
+            # 2) IMPORTES — el muro depende de la FORMA de la salida, y decirlo es el punto:
+            if isinstance(salida, dict):
+                # Salida estructurada: muro de TIPO. Cero numéricos. No una lista de importes
+                # conocidos — comparar contra {5000, -5000, …} es la lista que envejece que
+                # este AC existe para evitar: un saldo de 0, o un importe que el fixture no
+                # usa, pasaría limpio. (Descubierto POR MUTACIÓN: filtrar balance_cents=0
+                # pasaba este test.) Bajo `publico` no hay nada numérico que devolver.
+                _, valores = _recorre(salida)
+                numeros = [v for v in valores
+                           if isinstance(v, (int, float)) and not isinstance(v, bool)]
+                assert not numeros, f"{nombre}: numérico {numeros} bajo publico — ¿un importe?"
+            else:
+                # Salida SERIALIZADA (str). El muro de tipo NO transfiere y fingir que sí sería
+                # peor que no tenerlo: `_recorre` sobre un str no ve ningún int, así que el
+                # chequeo pasaría POR VACUIDAD. (Se descubrió así: AC-7 daba verde sobre el
+                # exporte sin comprobar un solo importe.) Y el muro tampoco puede ser «cero
+                # dígitos»: la cabecera lleva `periodo`, que son ints legítimos.
+                # El invariante real: los importes individuales viven en `lineas`, y bajo
+                # `publico` no hay líneas que dar.
+                if nombre == "exportar_registros":
+                    datos = json.loads(salida)
+                    assert datos["lineas"] == [], \
+                        f"{nombre}: líneas con importes individuales bajo publico"
+                    assert "saldo_inicial" not in datos and "saldo_final" not in datos, \
+                        f"{nombre}: saldo del miembro bajo publico"
+                    assert "miembro_id" not in datos, f"{nombre}: miembro_id bajo publico"
+                else:
+                    # Markdown de `render_statement`. Tampoco vale «cero dígitos»: el seudónimo
+                    # es hexadecimal y los lleva. El muro es la FORMA CERRADA, igual que la
+                    # igualdad exacta de claves de AC-d3.3: la salida es exactamente la línea
+                    # del seudónimo, así que no hay hueco donde quepa un importe.
+                    seudo = led.member_statement(state, mid, scope="publico")["seudonimo"]
+                    assert texto == f"# Statement — {seudo}\n", \
+                        f"{nombre}: el render publico no es exactamente la línea del seudónimo"

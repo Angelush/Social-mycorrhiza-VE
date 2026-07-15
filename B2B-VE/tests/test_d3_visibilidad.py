@@ -244,14 +244,43 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
     listas ROMPE este test el día que se escribe, obligando a su autor a decidir.
     """
     import inspect
-    # Se enumeran los TRES módulos del fork, no solo el ledger. F-d7.5 promete que este test
-    # cubre `exportar_registros` «automáticamente, por eso está escrito por enumeración» — pero
-    # D7 vive en su propio módulo (patrón de `anclaje.py`: no tiene la forma
-    # `op(state,…)->(new_state,event)` y meterla en el ledger invita a darle un `ratified_by`).
-    # Enumerar un solo módulo haría FALSA esa promesa. Se adapta el test, no la geometría del
-    # módulo — y de paso queda cubierto `anclaje.py`, que hasta TB.7 no enumeraba nadie.
-    modulos = [led, _load("anclaje_d3", "src/ledger/anclaje.py"),
-               _load("exportes_d3", "src/ledger/exportes.py")]
+    # LOS MÓDULOS SE DESCUBREN POR GLOB, NO POR LISTA (endurecido en TB.8).
+    #
+    # Hasta TB.7 esto era una lista literal `[led, anclaje, exportes]`, y ahí vivía el mismo
+    # defecto que este test existe para prevenir, un nivel más arriba: TB.4 mató la lista de
+    # FUNCIONES que envejece y dejó viva una lista de MÓDULOS que envejece igual. F-d7.5 ya
+    # obligó a parchearla a mano una vez (prometía que AC-7 cubría `exportar_registros`
+    # «automáticamente», y era falso viviendo en otro módulo).
+    #
+    # TB.8 lo confirmó por evidencia, no por sospecha: al escribir `src/gobernanza/multisig.py`
+    # con TRES funciones públicas nuevas, este test SIGUIÓ VERDE. Un módulo nuevo no rompía
+    # nada — sus funciones simplemente no se enumeraban. A la segunda no se parchea: se
+    # arregla. Ahora un paquete nuevo entra solo, y su autor tiene que clasificar lo que
+    # escriba el día que lo escriba.
+    #
+    # Coste asumido a propósito: entran también `clearing_solver.py` y `firewall/herencia.py`,
+    # que nadie enumeraba y sobre los que nadie había decidido nada. Clasificarlas es trabajo
+    # real y es el correcto.
+    archivos = sorted((_BASE / "src").rglob("*.py"))
+    modulos = [_load("ac7_%s" % p.relative_to(_BASE / "src").as_posix().replace("/", "_")[:-3],
+                     p.relative_to(_BASE).as_posix())
+               for p in archivos]
+
+    # LA ENUMERACIÓN SE DECLARA COMPLETA, Y SE COMPRUEBA.
+    #
+    # Esto lo puso la MUTACIÓN, no el diseño: al volver `modulos` a una lista literal, la suite
+    # entera se quedaba VERDE — `multisig.py` dejaba de enumerarse y nadie protestaba. La
+    # defensa de arriba no hablaba. Con el glob el assert es trivialmente cierto; con una lista
+    # literal falla Y DICE QUÉ MÓDULO FALTA, que es lo que lo hace una defensa y no una
+    # convención. Sin esta línea, todo el endurecimiento de TB.8 se deshace con un `git revert`
+    # silencioso.
+    cubiertos = {m.__file__ for m in modulos}
+    assert cubiertos == {str(p) for p in archivos}, (
+        "La enumeración de AC-7 no cubre todo `src/`. Faltan: %s. NO la conviertas en una "
+        "lista literal: una lista de módulos envejece igual que la lista de funciones que "
+        "este test existe para evitar (F-d7.5 ya obligó a parchearla a mano una vez, y en "
+        "TB.8 un paquete nuevo con 3 públicas pasó sin que nada se pusiera rojo)."
+        % sorted({str(p) for p in archivos} - cubiertos))
     publicas = {n for m in modulos for n in dir(m)
                 if not n.startswith("_")
                 and inspect.isfunction(getattr(m, n))
@@ -300,6 +329,28 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
         # está parado— es de la CÉLULA, no de una persona: `cell_metrics` ya lo expone y es
         # agregado. No hay nada que acotar.
         "puente_pausar", "puente_reanudar",
+        # D4 (TB.8) — `src/gobernanza/multisig.py`. No reciben `state`: NO HAY MIEMBRO QUE
+        # ACOTAR. Ni saldo, ni identidad, ni nada del ledger — el módulo ni siquiera lo
+        # importa. `describir_politica` sí rinde una vista legible, pero DE LA POLÍTICA (un
+        # documento de gobernanza sobre una reserva que vive fuera del motor), no del libro:
+        # lo que expone son alias, cargos y etiquetas opacas que el llamador acaba de pasar.
+        # Y no queda sin acotar: AC-d4.7 la acota por su cuenta (direcciones truncadas, nada
+        # que no estuviera en la política) — que es la misma propiedad que persigue C-d3.1,
+        # aplicada donde sí hay algo que filtrar.
+        "verificar_umbral", "verificar_formato_direccion", "describir_politica",
+        # CLEARING (upstream) — las descubre el glob de TB.8; hasta ahora nadie las enumeraba
+        # y nadie había decidido nada sobre ellas. Se clasifican, no se ignoran.
+        #   `clear` es el solver: corre DENTRO de la célula sobre el input que le da
+        #   `to_clearing_input`, que ya está en SIN_SCOPE por ST-d3.4 y por el mismo motivo.
+        #   Acotar el solver es acotar la compensación, que es el producto de la célula.
+        #   `render_report` es la CARA de `clear`: rinde la propuesta de liquidación para el
+        #   comité de crédito, con IDs e importes. Es el par simétrico de `to_clearing_input`
+        #   —uno es el input del solver y el otro su salida— y vive del mismo lado de la
+        #   membrana: dentro. Un scope aquí rompería el clearing sin proteger nada, porque
+        #   quien lo lee ya está dentro. Lo que salga de la célula pasa por
+        #   `exportar_registros`, que SÍ lleva scope desde TB.7 — ahí es donde está la fuga
+        #   y ahí es donde está tapada.
+        "clear", "render_report",
     }
 
     sin_clasificar = publicas - CON_SCOPE - SIN_SCOPE

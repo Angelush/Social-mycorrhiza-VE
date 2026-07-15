@@ -118,6 +118,7 @@ def test_ac_d9_6_esquemas_cerrados_no_se_escanean():
         "velocity_window_s": 86400,
         "velocity_max_cents": 5000000,
         "moneda": "USD",
+        "sal_seudonimo": "sal-de-prueba-c1",  # D3 — obligatoria en toda célula
         "paused": False
     }
     member_valido = {"id": "A", "turnover_cents": 100000000}

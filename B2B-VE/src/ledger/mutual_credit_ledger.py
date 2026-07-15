@@ -135,6 +135,17 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             if expira is not None:
                 raise ValueError("expira_en_dias")
 
+        # D3 — la sal del seudónimo. Obligatoria en TODA célula (el matraqueo no depende de la
+        # moneda). Vive en `params` y no como argumento de `member_statement` porque una sal por
+        # llamada la elige el llamador: dos llamadas honestas darían dos seudónimos del mismo
+        # miembro, el enlace entre anclas (D2) se rompería y el árbitro no podría hacer su
+        # trabajo. La sal es propiedad de la CÉLULA, y su estabilidad es lo que la hace útil.
+        # Sin sal, sha256(cell_id+member_id) se revierte por fuerza bruta sobre los 30-500
+        # nombres de la célula: un seudónimo reversible es identidad con un paso extra (C-d3.3).
+        sal = params.get("sal_seudonimo")
+        if not isinstance(sal, str) or not sal:
+            raise ValueError("sal_seudonimo")
+
         # D1 — lint secundario FX (§5). No es el muro; el muro es la geometría.
         for key in params:
             if _key_matches_taxonomy(key, _TASA_KEYS):
@@ -149,6 +160,7 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
                 "velocity_max_cents": params["velocity_max_cents"],
                 "moneda": moneda,
                 "expira_en_dias": expira,
+                "sal_seudonimo": sal,
                 "paused": False
             },
             "members": {},
@@ -525,10 +537,48 @@ def to_clearing_input(state: dict) -> dict:
         "obligations": obs_list
     }
 
-def member_statement(state: dict, member_id: str) -> dict:
-    """Generate structured account details for a member."""
+SCOPES = ("comite_credito", "miembro", "publico")
+
+
+def _seudonimo(state: dict, member_id: str) -> str:
+    """Compromiso estable con el miembro, NO su identidad (D3 §3).
+
+    Reusa `canonical` (la serialización del motor) en vez de inventar un formato: dos formatos
+    de serialización es una discrepancia esperando a pasar.
+    """
+    sal = state["params"]["sal_seudonimo"]
+    return hashlib.sha256(canonical([state["cell_id"], member_id, sal])).hexdigest()[:16]
+
+
+def member_statement(state: dict, member_id: str, scope: str, solicitante: str | None = None) -> dict:
+    """Extracto del miembro, acotado por `scope` (D3).
+
+    `scope` es POSICIONAL OBLIGATORIO, sin default: un default es la configuración que nadie
+    revisa, y `comite_credito` por default dejaría el delta instalado y desactivado a la vez
+    (F-d3.1) — con la suite verde certificando que existe. Quien no dice desde dónde mira, no
+    mira (C-d3.1; M10 en espíritu: rechazar, no recortar).
+
+    El scope es un CONTRATO, no un guardia: el motor no autentica (spec-ledger §5) y un
+    llamador puede mentir y pedir `comite_credito`. No lo impedimos y no fingimos que sí
+    (N-d3.4) — una garantía falsa es peor que ninguna, porque nadie pone la de verdad encima.
+    """
+    if scope not in SCOPES:
+        raise ValueError("scope")
+    if scope == "miembro" and solicitante != member_id:
+        # Sin esto, `miembro` es `publico` con otro nombre (C-d3.2). Cubre también
+        # `solicitante=None`: omitirlo no puede ser la vía a ver el extracto ajeno.
+        raise ValueError("solicitante")
     if member_id not in state["members"]:
         raise ValueError(member_id)
+
+    if scope == "publico":
+        # Conjunto de claves CERRADO, no una lista de nombres prohibidos: el muro es el TIPO de
+        # salida (H1). Ni saldo, ni líneas, ni proyectada, ni owed_* (N-d3.1: un libro público
+        # de saldos es un mapa de matraqueo — quién tiene superávit = lista de objetivos).
+        # Ni `status`: la escalera de sanciones sobre un seudónimo estable sigue siendo una
+        # marca (N-d3.2). Un `salud_crediticia` futuro rompe AC-d3.3 sin que nadie lo previera.
+        return {"seudonimo": _seudonimo(state, member_id)}
+
     m = state["members"][member_id]
     owed_to = sum(o["amount_cents"] for o in state["obligations"].values() if o["creditor"] == member_id)
     owed_by = sum(o["amount_cents"] for o in state["obligations"].values() if o["debtor"] == member_id)
@@ -555,9 +605,16 @@ def _fmt_cents(cents: int, moneda: str) -> str:
     a = abs(cents)
     return f"{sign}{a//100}.{a%100:02d} {_SIMBOLO[moneda]}"
 
-def render_statement(state: dict, member_id: str) -> str:
-    """Render the member statement as markdown."""
-    stmt = member_statement(state, member_id)
+def render_statement(state: dict, member_id: str, scope: str, solicitante: str | None = None) -> str:
+    """Render the member statement as markdown. Mismo scope, misma regla (D3 §5.3).
+
+    Delega la decisión en `member_statement`: dos implementaciones del scope es una que se
+    olvida de endurecer. Bajo `publico` el render es el seudónimo y nada más — un extracto
+    renderizado con importes es exactamente lo que N-d3.1 prohíbe, por muy markdown que sea.
+    """
+    stmt = member_statement(state, member_id, scope, solicitante)
+    if scope == "publico":
+        return f"# Statement — {stmt['seudonimo']}\n"
     cell_id = state["cell_id"]
     moneda = state["params"]["moneda"]
     def _f(c):

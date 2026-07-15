@@ -27,7 +27,7 @@ PARAMS_USD = {
     "velocity_window_s": 86400,
     "velocity_max_cents": 5000000,
     "moneda": "USD",
-    "paused": False
+    "sal_seudonimo": "sal-de-prueba-cell1", "paused": False
 }
 
 PARAMS_VES = {
@@ -37,7 +37,7 @@ PARAMS_VES = {
     "velocity_max_cents": 5000000,
     "moneda": "VES",
     "expira_en_dias": 30,
-    "paused": False
+    "sal_seudonimo": "sal-de-prueba-cell1", "paused": False
 }
 
 
@@ -63,7 +63,7 @@ def test_ac10_vocabulario_nuclear_vivo():
     state, tx = led.record_obligation(state, obligation, ts=1003)
 
     # 3. member_statement("A") devuelve balance_cents, credit_min_cents, credit_max_cents
-    statement = led.member_statement(state, "A")
+    statement = led.member_statement(state, "A", scope="comite_credito")
     assert "balance_cents" in statement
     assert "credit_min_cents" in statement
     assert "credit_max_cents" in statement
@@ -210,7 +210,7 @@ def test_d1_simbolo_derivado():
     state_usd, _ = led.add_member(state_usd, {"id": "B", "turnover_cents": 100000000}, ratified_by="admin", ts=1002)
     state_usd, _ = led.record_obligation(state_usd, {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 5000}, ts=1003)
     
-    render_usd = led.render_statement(state_usd, "A")
+    render_usd = led.render_statement(state_usd, "A", scope="comite_credito")
     assert "$" in render_usd
     assert "€" not in render_usd
     assert "Bs." not in render_usd
@@ -221,7 +221,7 @@ def test_d1_simbolo_derivado():
     state_ves, _ = led.add_member(state_ves, {"id": "B", "turnover_cents": 100000000}, ratified_by="admin", ts=1002)
     state_ves, _ = led.record_obligation(state_ves, {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 5000}, ts=1003)
     
-    render_ves = led.render_statement(state_ves, "A")
+    render_ves = led.render_statement(state_ves, "A", scope="comite_credito")
     assert "Bs." in render_ves
     assert "€" not in render_ves
     assert "$" not in render_ves

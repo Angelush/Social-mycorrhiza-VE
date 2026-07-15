@@ -22,7 +22,7 @@ sol = _load("clearing_solver_lt", "src/clearing/clearing_solver.py")
 # moneda: USD es la unidad de cuenta del sistema (D1). Las células USD NO llevan
 # expira_en_dias — declararlo sería una célula confundida sobre qué es.
 PARAMS = {"neg_line_bp": 100, "pos_line_bp": 1000, "velocity_window_s": 86400,
-          "velocity_max_cents": 5_000_000, "moneda": "USD", "paused": False}
+          "velocity_max_cents": 5_000_000, "moneda": "USD", "sal_seudonimo": "sal-de-prueba-cell1", "paused": False}
 
 def fresh_cell(ts=1000):
     """cell1 with members A,B,C,D (turnover 100_000_000 -> lines -1_000_000/+10_000_000); returns (state, events)."""
@@ -55,7 +55,7 @@ def assert_rejects(state, fn, *args, **kw):
 class TestFlowA:
     def test_defaults_and_clearing(self):
         state, events, proposal = flow_a()
-        stmt_a = led.member_statement(state, "A")
+        stmt_a = led.member_statement(state, "A", scope="comite_credito")
         assert stmt_a["credit_min_cents"] == -1_000_000
         assert stmt_a["credit_max_cents"] == 10_000_000
 
@@ -71,7 +71,7 @@ class TestFlowA:
     def test_all_balances_zero(self):
         state, _, _ = flow_a()
         for mid in "ABCD":
-            stmt = led.member_statement(state, mid)
+            stmt = led.member_statement(state, mid, scope="comite_credito")
             assert stmt["balance_cents"] == 0
 
     def test_applied_hash_registered(self):
@@ -98,8 +98,8 @@ class TestFlowA:
     def test_settle_o1_2500(self):
         state, _, _ = flow_a()
         state, _ = led.settle_obligation(state, "o1", 2500, 1060)
-        stmt_a = led.member_statement(state, "A")
-        stmt_b = led.member_statement(state, "B")
+        stmt_a = led.member_statement(state, "A", scope="comite_credito")
+        stmt_b = led.member_statement(state, "B", scope="comite_credito")
         assert stmt_a["balance_cents"] == -2500
         assert stmt_b["balance_cents"] == 2500
         assert state["obligations"]["o1"]["amount_cents"] == 3500
@@ -218,7 +218,7 @@ class TestRejections:
 
     def test_velocity_window_zero(self):
         with pytest.raises(ValueError):
-            led.create_cell("bad", {"neg_line_bp": 100, "pos_line_bp": 1000, "velocity_window_s": 0, "velocity_max_cents": 5_000_000, "paused": False}, "ana", 1000)
+            led.create_cell("bad", {"neg_line_bp": 100, "pos_line_bp": 1000, "velocity_window_s": 0, "velocity_max_cents": 5_000_000, "sal_seudonimo": "sal-de-prueba-cell1", "paused": False}, "ana", 1000)
 
     def test_ts_regression(self):
         state, _ = fresh_cell(1000)
@@ -292,7 +292,7 @@ class TestSettleBounds:
         state, _ = led.update_member(state, "A", {"credit_min_cents": -500}, "ana", 1030)
         assert_rejects(state, led.settle_obligation, "o1", 500, 1040)
         state, _ = led.settle_obligation(state, "o1", 400, 1040)
-        stmt = led.member_statement(state, "A")
+        stmt = led.member_statement(state, "A", scope="comite_credito")
         assert stmt["balance_cents"] == -500
 
     def test_update_below_current_balance(self):
@@ -415,7 +415,7 @@ class TestViews:
     def test_member_statement_consistency(self):
         state, _, _ = flow_a()
         for mid in "ABCD":
-            stmt = led.member_statement(state, mid)
+            stmt = led.member_statement(state, mid, scope="comite_credito")
             assert stmt["member_id"] == mid
             assert stmt["status"] == "active"
             assert stmt["balance_cents"] == 0
@@ -428,12 +428,12 @@ class TestViews:
         # El "€" hardcodeado de upstream era una mentira en cuanto la unidad de cuenta dejo
         # de ser el euro, y el extracto lo lee el humano que decide.
         state, _, _ = flow_a()
-        rendered = led.render_statement(state, "A")
+        rendered = led.render_statement(state, "A", scope="comite_credito")
         assert rendered.startswith("# Statement — A @ cell1")
         assert "$" in rendered
         assert "€" not in rendered
         assert rendered.endswith("\n")
-        rendered2 = led.render_statement(state, "A")
+        rendered2 = led.render_statement(state, "A", scope="comite_credito")
         assert rendered == rendered2
 
 class TestIndependentOracle:
@@ -468,7 +468,7 @@ class TestIndependentOracle:
                     if open_obs[oid]["amount_cents"] <= 0:
                         del open_obs[oid]
         for mid in "ABCD":
-            stmt = led.member_statement(state, mid)
+            stmt = led.member_statement(state, mid, scope="comite_credito")
             assert stmt["balance_cents"] == balances[mid]
         for oid, obs in state["obligations"].items():
             assert oid in open_obs

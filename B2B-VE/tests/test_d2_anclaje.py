@@ -64,7 +64,7 @@ def hoja_de(events, seq):
 def flujo_real():
     """Flujo real del ledger (célula USD, D1) → eventos encadenados de verdad."""
     params = {"neg_line_bp": 100, "pos_line_bp": 1000, "velocity_window_s": 86400,
-              "velocity_max_cents": 5_000_000, "moneda": "USD", "paused": False}
+              "velocity_max_cents": 5_000_000, "moneda": "USD", "sal_seudonimo": "sal-de-prueba-cell1", "paused": False}
     state, ev = led.create_cell("cell1", params, "ana", 1000)
     events = [ev]
     for mid in ("A", "B"):

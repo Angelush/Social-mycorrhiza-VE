@@ -20,7 +20,7 @@ led = _load("mutual_credit_ledger_tp", "src/ledger/mutual_credit_ledger.py")
 sol = _load("clearing_solver_ltp", "src/clearing/clearing_solver.py")
 
 PARAMS = {"neg_line_bp": 100, "pos_line_bp": 1000, "velocity_window_s": 86400,
-          "velocity_max_cents": 5_000_000, "moneda": "USD", "paused": False}
+          "velocity_max_cents": 5_000_000, "moneda": "USD", "sal_seudonimo": "sal-de-prueba-cell1", "paused": False}
 
 def fresh_cell(ts=1000):
     state, ev = led.create_cell("cell1", dict(PARAMS), "ana", ts)
@@ -102,7 +102,7 @@ def test_property_balances_and_bounds(ops):
         metrics = led.cell_metrics(state)
         assert metrics["sum_balances_cents"] == 0
         for mid in "ABCD":
-            stmt = led.member_statement(state, mid)
+            stmt = led.member_statement(state, mid, scope="comite_credito")
             assert stmt["credit_min_cents"] <= stmt["balance_cents"] <= stmt["credit_max_cents"]
 
 @given(ops=op_stream())

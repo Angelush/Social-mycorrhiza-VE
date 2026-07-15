@@ -294,6 +294,12 @@ def test_ac_7_ningun_punto_de_consulta_publico_expone_saldo_mas_identidad():
         # la función del ÁRBITRO y ni siquiera recibe `events` (C-d2.5). Darles scope no
         # protegería nada y rompería al árbitro, que es a quien sirven.
         "anclar", "prueba_de_inclusion", "verificar_inclusion",
+        # D8 (TB.6b) — mismo motivo que `salida_con_saldo`, y más fácil: mueven un booleano de
+        # `params`. No devuelven ni saldo ni identidad de nadie, y quien llama RATIFICA (traen
+        # `ratified_by` por la puerta de M8), no consulta. El hecho que registran —el puente
+        # está parado— es de la CÉLULA, no de una persona: `cell_metrics` ya lo expone y es
+        # agregado. No hay nada que acotar.
+        "puente_pausar", "puente_reanudar",
     }
 
     sin_clasificar = publicas - CON_SCOPE - SIN_SCOPE

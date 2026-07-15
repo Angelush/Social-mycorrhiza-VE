@@ -142,3 +142,61 @@ TA.9, re-aplicada en TB.5 y TB.6). El golden **nunca** va a fan-out: es el piso.
 **Obligatoria: una mutación que este DESIGN no previó.** Lleva cinco defectos cazados en tests de
 criterio de Opus (TA.9, TB.4, TB.7, TB.5 y **TB.6**, donde destapó que AC-d68.4 pasaba por la
 razón equivocada). Un test de invariante que no se ha visto fallar no se sabe si prueba algo.
+
+---
+
+## §8 — RESULTADO (Opus, 2026-07-16). Suite **297+3 → 327 passed + 3 skipped** (+30)
+
+`herencia.py` diff **VACÍO**, bloque `5d693ec` idéntico en las **7** copias, `B2B/` intacto
+(125+3), C2C-VE 441. Sin fan-out (regla de coste TA.9: el contrato de firmas era el DESIGN
+entero). Golden regenerado **solo** en `final_state_sha256`.
+
+### La navaja cortó, y la predicción de §1 se cumplió exactamente
+
+`head_hash` observado **antes** de tocar el golden: `9fa1517…e929` = el declarado. Solo se movió
+`final_state_sha256` (`f92bd2a5…` → `85bde4e1…`). Comparación campo a campo contra `B2B/` intacto
+(técnica TB.2): único delta nuevo `params.puente_pausado`; saldos idénticos al centavo,
+obligations/seq/last_ts/applied_proposals idénticos, L1=0.
+
+### Mutaciones: 7/7 planificadas cazadas
+
+| # | Mutación | Resultado |
+|---|---|---|
+| 1 | `puente_pausar` reutiliza `params["paused"]` (F-d68.4) | **14 rojos**, AC-d68.5 entero |
+| 2 | el check sube al preámbulo de `_apply` | **3 rojos**, AC-d68.5 + `replay` |
+| 3 | la pausa rechaza también `plan_de_pago` | **1 rojo: AC-d68.5 y solo él** (I-VE7) |
+| 4 | kinds fuera de `ratification_kinds` | **12 rojos**, AC-7(1) |
+| 5 | doble pausa idempotente | **1 rojo**, AC-d68.8(1) |
+| 6 | `puente_pausado` inicial `True` | **29 rojos** (el flujo del piloto entero) |
+| 7 | `puente_pausado` colado en el payload | **el head_hash del golden** ✔ |
+
+### HALLAZGO 1 (no previsto) — el orden de los asserts del golden tapaba la navaja
+
+`final_state_sha256` y `head_hash` son independientes **en el papel, no en la señal**:
+`canonical(state)` **incluye `state["head_hash"]`**, así que un cambio en la cadena mueve **los
+dos**. Con `final_state_sha256` asertado primero, la mutación 7 se presentaba como «cambió el
+hash del estado» — **el síntoma benigno, el que un delta legítimo produce y que se arregla
+regenerando**. El aviso que importa quedaba tapado por el assert que no toca. → en
+`test_ledger.py:485` el `head_hash` va **primero**, con el mensaje «INVESTIGA, NO REGENERES».
+**La navaja no basta con afilarla: tiene que hablar antes que el ruido.**
+
+### HALLAZGO 2 (no previsto) — el payload de `cell_created` es el `params` del llamador VERBATIM
+
+§1 decía «la clave nueva no viaja en el evento». **Verdadero, pero por otra razón:** si el
+llamador pasa `puente_pausado: True`, **la clave sí sale en el payload** (el evento eco del
+`params` recibido) — el estado la ignora igual. Lo que hace invariante el `head_hash` es que **el
+motor no la inyecta**, y el flujo del golden no la pasa. Fijado en dos tests separados. **Señalado
+→ README de TB.9:** el evento registra lo que se PIDIÓ y el estado lo que el motor DECIDIÓ (misma
+convención que `referencias_comerciales: []` en D5, y `replay` la conserva) — pero **un auditor
+que lea el payload y no el estado leerá una pausa que nunca existió**.
+
+### HALLAZGO 3 — `test_acd28` (D2) se puso rojo por PROSA, no por dependencia
+
+Hacía `"anclaje" not in fuente` sobre el archivo **entero**: un docstring nuevo del ledger que
+dice «anclajes» lo tumbaba. Afirmaba algo del **código** y lo comprobaba sobre la **prosa** (la
+familia de AC-d7.4 en TB.7). → se filtran comentarios y docstrings con `tokenize` y se aserta
+sobre el código; los STRING **fuera** de posición de sentencia se conservan (ahí viviría un
+`__import__("anclaje")`, que un check de imports por AST se perdería). **No se reescribió el
+docstring:** si mandara el test, el ledger no podría explicar por qué el puente y el anclaje son
+cosas distintas. **Su control negativo cazó un defecto en el propio helper** (unir tokens en seco
+daba `importhashlib` → el assert habría pasado por una razón falsa).

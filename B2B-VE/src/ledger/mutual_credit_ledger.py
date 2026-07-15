@@ -209,7 +209,7 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
     # pide no construir una segunda. Una helper que mutara el estado sin pasar por aquí se
     # saltaría de una vez `ratified_by`, la monotonía de `ts`, el check de `paused`, el
     # encadenado de hashes y los post-asserts L1/L2 (F-d68.1).
-    ratification_kinds = {"cell_created", "member_added", "member_updated", "clearing_applied", "cell_paused", "cell_resumed", "member_exited"}
+    ratification_kinds = {"cell_created", "member_added", "member_updated", "clearing_applied", "cell_paused", "cell_resumed", "member_exited", "bridge_paused", "bridge_resumed"}
     if kind in ratification_kinds:
         ratified_by = payload_copy.get("ratified_by")
         if not isinstance(ratified_by, str) or not ratified_by:
@@ -280,7 +280,12 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
                 "moneda": moneda,
                 "expira_en_dias": expira,
                 "sal_seudonimo": sal,
-                "paused": False
+                "paused": False,
+                # D8 — estado derivado, no configuración: como `paused`, se fija aquí y se
+                # ignora lo que traiga el llamador. Una célula que arranca con el puente
+                # pausado no es una cosa. Por eso la clave NO viaja en el payload de
+                # `cell_created` y el `head_hash` del golden es invariante bajo D8.
+                "puente_pausado": False
             },
             "members": {},
             "obligations": {},
@@ -446,6 +451,14 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             # signo. Así L1 se conserva por construcción en vez de por dos casos que hay que
             # acordarse de cuadrar.
             clave = "fondo" if tipo == "liquidacion_puente" else "avalista"
+            # D8 — LO ÚNICO que hace la pausa del puente: rechazar esta resolución. El check
+            # vive aquí, junto a la resolución que rechaza, y NO en el preámbulo de `_apply`
+            # (donde vive el de `paused`): ahí arriba tendría que preguntar de qué kind viene, y
+            # esa pregunta es la puerta de entrada de F-d68.4 — un `if` de más y la pausa se
+            # come el ledger entero. `puente_pausado` ≠ `paused` (C-d68.4): el crédito interno
+            # sobrevive a la muerte del puente (I-VE7), que es la parte robusta de la red.
+            if tipo == "liquidacion_puente" and new_state["params"]["puente_pausado"]:
+                raise ValueError("puente_pausado")
             contraparte_id = resolucion[clave]
             if not isinstance(contraparte_id, str) or contraparte_id not in new_state["members"]:
                 raise ValueError(clave)
@@ -609,6 +622,19 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
         if not new_state["params"]["paused"]:
             raise ValueError("not_paused")
         new_state["params"]["paused"] = False
+
+    # D8 — calcadas de `cell_paused`/`cell_resumed` (P-d68.1) pero SIN reutilizar su campo. Los
+    # mensajes son distinguibles de `paused`/`not_paused` a propósito: es lo que permite a un
+    # `match=` probar que se rechazó por el puente y no por el cortafuegos (lección de AC-d9.5).
+    elif kind == "bridge_paused":
+        if new_state["params"]["puente_pausado"]:
+            raise ValueError("puente_pausado")
+        new_state["params"]["puente_pausado"] = True
+
+    elif kind == "bridge_resumed":
+        if not new_state["params"]["puente_pausado"]:
+            raise ValueError("puente_no_pausado")
+        new_state["params"]["puente_pausado"] = False
 
     if state_copy is None:
         seq = 1
@@ -801,6 +827,35 @@ def resume_cell(state: dict, ratified_by: str, ts: int) -> tuple[dict, dict]:
     }
     return _apply(state, "cell_resumed", payload, ts)
 
+def puente_pausar(state: dict, ratified_by: str, ts: int) -> tuple[dict, dict]:
+    """D8 — pausar el puente de liquidación externa. Reversible (`puente_reanudar`).
+
+    Lo ÚNICO que hace: rechazar `salida_con_saldo` con resolución `liquidacion_puente`. Todo lo
+    demás sigue corriendo — obligaciones, compensación, saldos, altas, anclajes y las otras tres
+    resoluciones de salida. *Porque* I-VE7: la red local sobrevive a la muerte del puente. El
+    crédito interno es la parte robusta; el puente es la frágil. Una pausa que detuviera el
+    crédito interno acoplaría la supervivencia del sistema a su pieza más frágil, y fallaría
+    exactamente en el escenario para el que se diseñó (F-d68.4).
+
+    Es un DIAL, no un interruptor de un solo uso: la lista de designaciones se mueve en los dos
+    sentidos (`docs/verificaciones/2026-07-15-sanciones.md`, hallazgo 4), y el alivio vigente va
+    por licencia general REVOCABLE (hallazgo 2) — de ahí que esto exista.
+
+    El motor NO criba contra la lista SDN y no debe: quién está designado lo sabe el comité, con
+    datos que el motor no tiene (N8/N9/I3). Esta función registra una decisión humana; no la toma.
+    """
+    payload = {
+        "ratified_by": ratified_by
+    }
+    return _apply(state, "bridge_paused", payload, ts)
+
+def puente_reanudar(state: dict, ratified_by: str, ts: int) -> tuple[dict, dict]:
+    """D8 — reanudar el puente de liquidación externa. Inversa de `puente_pausar`."""
+    payload = {
+        "ratified_by": ratified_by
+    }
+    return _apply(state, "bridge_resumed", payload, ts)
+
 def to_clearing_input(state: dict) -> dict:
     """Generate state slice for the clearing engine."""
     state_cp = copy.deepcopy(state)
@@ -957,6 +1012,10 @@ def cell_metrics(state: dict) -> dict:
         "moneda": state["params"]["moneda"],
         "expira_en_dias": state["params"]["expira_en_dias"],
         "paused": state["params"]["paused"],
+        # D8 — el comité tiene que poder ver si el puente está parado sin leer el stream. En TB.6
+        # exponerlo habría sido instalar el delta y desactivarlo a la vez (F-d3.1); aquí el
+        # mecanismo existe.
+        "puente_pausado": state["params"]["puente_pausado"],
         "seq": state["seq"]
     }
 

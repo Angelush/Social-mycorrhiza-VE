@@ -477,12 +477,27 @@ class TestIndependentOracle:
 
 class TestGoldenFlow:
     def test_golden_flow_pin(self):
-        """Byte-exact regression pin of Flow A (evals/golden-set/ledger_flow.json)."""
+        """Byte-exact regression pin of Flow A (evals/golden-set/ledger_flow.json).
+
+        ORDEN DE LOS ASSERTS — cambiado en TB.6b, y no es cosmética (lo destapó una mutación que
+        el DESIGN no previó). `head_hash` fija la CADENA; `final_state_sha256` fija el ESTADO.
+        Son independientes en el papel, pero NO en la señal: `canonical(state)` incluye
+        `state["head_hash"]`, así que cualquier cambio en la cadena mueve **los dos** hashes.
+
+        Con `final_state_sha256` asertado primero, colar una clave en el payload de
+        `cell_created` se presenta como «cambió el hash del estado» — que es el síntoma benigno,
+        el que un delta legítimo produce y que se resuelve regenerando. El aviso que importa
+        («si `head_hash` cambia, algo se coló → INVESTIGA, NO REGENERES») quedaba tapado por el
+        assert que no toca. Va primero el que solo se mueve cuando hay que investigar.
+        """
         import hashlib
         golden = json.loads((_BASE / "workflows" / "micorriza" / "evals" / "golden-set" / "ledger_flow.json").read_text())
         state, _, _ = flow_a()
         state, _ = led.settle_obligation(state, "o1", 2500, 1060)
+        assert state["head_hash"] == golden["head_hash"], (
+            "head_hash CAMBIÓ. La cadena no debería moverse por un delta de estado: algo se coló "
+            "en el payload de un evento. INVESTIGA, NO REGENERES el golden."
+        )
         assert hashlib.sha256(led.canonical(state)).hexdigest() == golden["final_state_sha256"]
-        assert state["head_hash"] == golden["head_hash"]
         assert state["seq"] == golden["seq"]
         assert led.cell_metrics(state)["gross_open_cents"] == golden["gross_open_cents"]

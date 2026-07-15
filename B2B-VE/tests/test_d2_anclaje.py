@@ -389,8 +389,53 @@ def test_admision_prueba_logaritmica_no_lineal():
 # ===========================================================================
 # AC-d2.8 — D2 es puramente aditivo
 # ===========================================================================
+def _codigo_sin_prosa(ruta):
+    """El texto de `ruta` sin comentarios ni docstrings: solo lo que se ejecuta.
+
+    TB.6b endureció esto. La versión original hacía `"anclaje" not in fuente` sobre el archivo
+    ENTERO, y en TB.6b se puso roja porque un docstring nuevo del ledger dice «anclajes» en
+    prosa. Un docstring no crea una dependencia: el test afirmaba algo del CÓDIGO y lo
+    comprobaba sobre la PROSA. Es la misma lección que AC-d7.4 en TB.7 (un test de la palabra
+    solo caza al que la nombra, y aquí caza además a quien la menciona sin importarla).
+
+    Se filtra la prosa en vez de reescribir el docstring: si mandara el test, el ledger no
+    podría explicar por qué el puente y el anclaje son cosas distintas — que es justo lo que un
+    lector necesita saber para no volver a acoplarlos.
+    """
+    import io, tokenize
+    fuente = ruta.read_text(encoding="utf-8")
+    fuera = []
+    # Un STRING en posición de sentencia es un docstring (o prosa suelta): no es una dependencia.
+    # Un STRING en cualquier otra posición SÍ se conserva — ahí es donde viviría un
+    # `__import__("anclaje")`, la vía que este test tiene que seguir cazando y que un check de
+    # imports por AST se perdería.
+    prev = tokenize.NEWLINE
+    for tok in tokenize.generate_tokens(io.StringIO(fuente).readline):
+        if tok.type == tokenize.COMMENT:
+            continue
+        if tok.type == tokenize.STRING and prev in (tokenize.INDENT, tokenize.DEDENT, tokenize.NEWLINE, tokenize.NL):
+            continue
+        fuera.append(tok.string)
+        prev = tok.type
+    # Se unen con espacio, no en seco: pegarlos produce `importhashlib` y el assert de
+    # `"anclaje" not in codigo` seguiría pasando, pero por una razón falsa — y un
+    # `from anclaje import x` partido en tokens tampoco se leería. Lo destapó el control
+    # negativo de abajo, que es exactamente para lo que está.
+    return " ".join(fuera)
+
+
+# ===========================================================================
+# AC-d2.8 — D2 es puramente aditivo
+# ===========================================================================
 def test_acd28_el_ledger_no_importa_el_anclaje():
     """La dependencia es de un solo sentido: `anclaje` → `ledger`, nunca al revés."""
-    fuente = (_BASE / "src/ledger/mutual_credit_ledger.py").read_text(encoding="utf-8")
-    assert "anclaje" not in fuente
+    codigo = _codigo_sin_prosa(_BASE / "src/ledger/mutual_credit_ledger.py")
+    assert "anclaje" not in codigo
     assert not hasattr(led, "anclar")
+
+    # Control negativo: el filtro quita prosa, no código. Si `_codigo_sin_prosa` devolviera ""
+    # o se comiera los imports, el assert de arriba pasaría por vacuidad y este test dejaría de
+    # probar nada — exactamente el fallo que TB.7 encontró en su propio muro.
+    assert "import hashlib" in codigo
+    assert "def salida_con_saldo" in codigo
+    assert "el crédito interno" not in codigo  # prosa: se fue

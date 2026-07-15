@@ -49,4 +49,18 @@ mande. Decisión humana, a tomar con este documento delante.
 argumenta que no necesita verificación previa; pero `puente.pausar()` **es** el mecanismo de
 respuesta a sanciones, que es justo lo que M9 vigila.
 
-**Resuelto:** ☐ sí / ☐ no — **Decisión:** ______________ **Fecha:** __________
+**Resuelto:** ☑ sí — **Decisión:** **D8 SÍ está bloqueado por M9; TB.6 NO.** Se parte el nodo:
+TB.6 = solo D6 (`salida_con_saldo`, cerrado en `ac3bdfd`), y D8 sale a una fila nueva **TB.6b**
+con deps `TB.6 + M9` explícitas. Pesó la segunda lectura: `puente.pausar()` **es** el mecanismo
+de respuesta a sanciones. Emigrar no es un evento sancionador, así que D6 no lo necesitaba.
+`tasks.md` (filas 48/50/66) queda corregido y ya no se contradice. — **Fecha:** 2026-07-15
+
+> Ojo al leer §4 desde aquí: este documento sigue bloqueando **D4 (TB.8)** y **D8 (TB.6b)**.
+
+## 6. Qué desbloquea cada área (para no rellenar de más)
+
+| Área | Desbloquea | Sin ella |
+|---|---|---|
+| **sanciones** | D8 (TB.6b) y D4 (TB.8) | ambos parados |
+| **cripto** | D8 (TB.6b) — el puente es USDT | TB.6b parado |
+| **fiscal** | nada del código hoy | D7 ya se construyó *compliance-ready*, no *compliance-dependent*: el motor no declara por nadie (TB.7). Hace falta antes de **desplegar**, no antes de compilar. |

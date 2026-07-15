@@ -50,10 +50,17 @@
   solo puede hacer daño. *Hueco encontrado en TB.1 → cerrado* en C-d9.4.
 - **ST-d9.3 — Auto-confirmación.** El test del md5 lo escribe quien copia el bloque; si copia
   mal y calcula el md5 de su propia copia, coincide consigo mismo. *Mitigación:* AC-d9.1 fija el
-  literal `758094a99054feffa153c869ecf17d5b` **verificado sobre las seis capas C2C-VE**, no un
+  literal `5d693ecf1833fb760e173ee3db30a263` **verificado sobre las seis capas C2C-VE**, no un
   md5 recalculado aquí. El valor esperado es un dato de entrada, jamás una salida del propio
-  nodo. **Y esto ya falló una vez:** el `5d693ec` de Fase 1 era un md5 que nadie recalculó nunca
-  contra nada (spec §2.1).
+  nodo — **y el span tampoco**.
+- **ST-d9.6 — Ajustar la convención hasta que cuadre (ya pasó, en TB.1).** Un md5 sin span
+  declarado admite dos respuestas honestas: con `\n` final da `5d693ec…`, con `.strip()` da
+  `758094a9…`. TB.1 extrajo con la segunda, no encontró el número de Fase 1, y concluyó que
+  Fase 1 mentía — casi hace reescribir siete artefactos correctos. *Mitigación:* el span es
+  parte de la constante (C-d9.1) y AC-d9.1 comprueba el byte-count además del md5, para que un
+  cambio de convención falle distinto que un cambio de contenido. **La forma general del fallo:
+  cuando el mecanismo y la afirmación discrepan, el sospechoso por defecto es el mecanismo
+  nuevo, no el artefacto que lleva cinco nodos en pie.**
 - **ST-d9.4 — Deriva futura.** Alguien edita el bloque en C2C-VE (siete copias ahora) y
   actualiza seis. La séptima queda huérfana y B2B-VE diverge en silencio. *Mitigación:* AC-d9.1
   corre en la suite B2B-VE contra el literal; el fallo aparece en el nodo que lo produjo.

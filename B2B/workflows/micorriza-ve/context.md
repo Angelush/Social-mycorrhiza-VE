@@ -109,25 +109,32 @@ Ya cazadas en TB.0; cada una se resuelve en su delta, por escrito:
   parcialmente: `anclar()` **emite un hash**; la publicación sigue fuera (N5). El límite
   upstream sigue vigente en su parte real (nada de smart contracts en la ruta de liquidación).
 
-### Corrección a Fase 1 (el código volvió a mandar)
+### El md5 del bloque firewall (TB.1 se equivocó; TB.2 lo deshace)
 
-Al intentar apoyar D9 en el md5 del bloque firewall, TB.1 verificó los dos extremos:
+Al intentar apoyar D9 en el md5 del bloque firewall, TB.1 concluyó que el `5d693ec` de Fase 1
+era falso y que el real era `758094a9…`. **Eso era un error de TB.1**, verificado y deshecho en
+TB.2 (2026-07-15):
 
-- **Cierto:** el bloque `BEGIN…END` **es** byte-idéntico en las seis capas C2C-VE (3018 bytes,
-  un solo grupo). La afirmación sustantiva de Fase 1 se sostiene.
-- **Falso:** el md5 **no** es `5d693ec` sino **`758094a99054feffa153c869ecf17d5b`**; y
-  `test_cross_layer_taxonomy` **no** fija los bytes — fija el conjunto `FORBIDDEN_KEYS`, la
-  equivalencia de comportamiento del tokenizador y el descenso de los escáneres.
+- **Cierto:** el bloque `BEGIN…END` **es** byte-idéntico en las seis capas C2C-VE (un solo
+  grupo). La afirmación sustantiva de Fase 1 se sostiene.
+- **Cierto también:** `test_cross_layer_taxonomy` **no** fija los bytes — fija el conjunto
+  `FORBIDDEN_KEYS`, la equivalencia de comportamiento del tokenizador y el descenso de los
+  escáneres. Ningún test calcula el md5. El N10 es real.
+- **Falso — lo que TB.1 llamó «corrección»:** los dos md5 son **el mismo bloque** con distinto
+  span. `5d693ecf1833fb760e173ee3db30a263` = bloque completo con el `\n` final (3023 bytes);
+  `758094a99054feffa153c869ecf17d5b` = el mismo bloque con `.strip()` (3022 bytes). `5d693ec`
+  es el prefijo de 7 caracteres del primero: **Fase 1 lo calculó bien.** El «3018 bytes» de
+  TB.1 no corresponde a ninguna de las dos medidas.
 
-El valor equivocado sobrevivió TA.4→TA.8 propagándose por `DESIGN-TA4/5/6/7`,
-`C2C-VE/README.md` y los comentarios de `membrana.py`/`aseguramiento.py` — **porque ningún test
-lo calculaba**. Es un N10 en su forma pura: una garantía afirmada en prosa, sin mecanismo, que
-solo se cayó cuando otro workstream intentó apoyarse en ella.
+**Canon (decisión humana, 2026-07-15):** el span es el bloque **completo, con el `\n` final** —
+3023 bytes, md5 `5d693ecf1833fb760e173ee3db30a263`. Es el número que Fase 1 ya publicó, así que
+**los artefactos de Fase 1 son correctos y no se tocan**.
 
-**Qué hace TB.1 con esto:** corrige el número en este sub-bundle y convierte la byte-identidad
-en test (AC-d9.1, que calcula el md5 dentro del test). **Qué NO hace:** tocar los artefactos de
-Fase 1 — sería alcance colado en un nodo de specs, sin gate. Va a Señalados (D10) y queda como
-nodo pendiente de Fase 1.
+**La lección, que sí se conserva:** el defecto no era el número, era que **un md5 publicado sin
+declarar su span no es verificable** — dos lectores honestos del mismo bloque sacan dos números
+y cada uno cree que el otro miente. Eso es lo que costó un nodo entero. Por eso AC-d9.1 fija el
+span además del literal, y por eso el Señalado de Fase 1 pasa a ser «declarar el span junto al
+número + añadir el test de byte-identidad a las seis capas», no «arreglar el número».
 
 ## 4. Log de divergencia con upstream (E4/TP.2)
 

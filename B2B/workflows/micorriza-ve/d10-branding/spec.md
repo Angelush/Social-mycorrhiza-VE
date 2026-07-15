@@ -80,7 +80,7 @@ Recogida de los failure-models de D1–D9. **Nada de esto se resuelve en prosa.*
 | Los modos C2C: herencia documentada, no integrada | D9 §1 |
 | La séptima copia del bloque firewall: acoplada por constante, sin test cross-árbol | ST-d9.4 |
 | La colisión `veto`/`sancion` está evitada, no resuelta | D9 §3 |
-| **Fase 1 publicó un md5 falso (`5d693ec`) en 4 DESIGN, el README de C2C-VE y 2 comentarios de `src/`; el real es `758094a9`. Las 6 capas C2C-VE siguen sin test de byte-identidad — solo B2B-VE lo tendrá** | D9 §2.1, ST-d9.4 |
+| **El md5 de Fase 1 (`5d693ec`) es correcto, pero se publicó sin declarar su span — y eso hizo que TB.1 lo declarara falso y propusiera reescribir 7 artefactos sanos. Corregido en TB.2. Las 6 capas C2C-VE siguen sin test de byte-identidad — solo B2B-VE lo tendrá** | D9 §2.1, ST-d9.3/ST-d9.6, ST-d9.4 |
 
 ## 5. Los property tests finales
 

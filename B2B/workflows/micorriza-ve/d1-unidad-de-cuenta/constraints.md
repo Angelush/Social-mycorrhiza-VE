@@ -17,7 +17,7 @@
 - **C-d1.4 — Enteros de unidad mínima en todo importe; float prohibido.** *Porque:* M4 (ya
   heredado como M1/I3 upstream). D1 no cambia la aritmética; solo la etiqueta.
 - **C-d1.5 — La taxonomía FX va en lista PRIVADA de d1, fuera del bloque compartido.**
-  *Porque:* C-d9.3 — el patrón de TA.6/TA.7. Meterla en el bloque rompe el md5 `758094a9` y con
+  *Porque:* C-d9.3 — el patrón de TA.6/TA.7. Meterla en el bloque rompe el md5 `5d693ec` y con
   él AC-10 y las seis capas C2C-VE.
 - **C-d1.6 — El símbolo de moneda se deriva de `params["moneda"]`.** *Porque:* `render_statement`
   y `render_report` los lee un humano; un extracto con «€» en una célula USD es una mentira que

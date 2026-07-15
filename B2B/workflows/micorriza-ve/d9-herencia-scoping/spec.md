@@ -60,33 +60,52 @@ bloque**. La frontera `BEGIN`/`END` se convierte en el test de que el corte se r
 Esto es afortunado, no casual: TA.6 sacó las taxonomías de dominio del bloque compartido
 precisamente porque eran *de dominio*. M5 dice lo mismo con otras palabras.
 
-### 2.1 Corrección a Fase 1 (hallazgo de TB.1 — «manda el código»)
+### 2.1 El md5: qué es cierto (corregido en TB.2 — «manda el código», otra vez)
 
-**El bloque ES byte-idéntico en las seis capas** (verificado en TB.1: 3018 bytes, un solo
-grupo). La afirmación sustantiva de Fase 1 es correcta.
+**El bloque ES byte-idéntico en las seis capas** (verificado: un solo grupo). La afirmación
+sustantiva de Fase 1 es correcta.
 
-**Pero dos cosas que Fase 1 afirmó sobre él son falsas**, y D9 no puede apoyarse en ellas:
+> **TB.1 se equivocó aquí, y TB.2 lo deshace.** TB.1 afirmó que el md5 `5d693ec` de Fase 1 era
+> «falso» y que el real era `758094a9…`. **Los dos números son reales y son el mismo bloque.**
+> Difieren solo en el salto de línea final:
+>
+> | Span | Bytes | md5 |
+> |---|---|---|
+> | Bloque `BEGIN…END\n` completo | 3023 | `5d693ecf1833fb760e173ee3db30a263` |
+> | El mismo bloque, `.strip()` | 3022 | `758094a99054feffa153c869ecf17d5b` |
+>
+> `5d693ec` es el prefijo de 7 caracteres de `5d693ecf1833…`: Fase 1 lo calculó bien y lo
+> publicó en forma corta. TB.1 cambió de convención de extracción sin advertirlo y llamó
+> «falso» al resultado anterior. (El «3018 bytes» que TB.1 dio por verificado no corresponde a
+> ninguna de las dos medidas; era ruido.)
+>
+> **Canon fijado en TB.2:** el bloque **completo, incluido el `\n` final** — 3023 bytes, md5
+> **`5d693ecf1833fb760e173ee3db30a263`**. Es lo que Fase 1 ya publicó, así que ningún artefacto
+> de Fase 1 se toca.
 
-1. **El md5 `5d693ec` es incorrecto.** El real es **`758094a99054feffa153c869ecf17d5b`**. El
-   valor equivocado se propagó por `DESIGN-TA4/5/6/7`, `C2C-VE/README.md` y los comentarios de
-   `membrana.py`/`aseguramiento.py` **porque ningún test lo calcula jamás**.
+**El defecto real de Fase 1 no era el número — era que no había convención ni mecanismo:**
+
+1. **Un md5 sin span declarado no es verificable.** Ese es el hueco que produjo esta falsa
+   alarma: dos lectores honestos del mismo bloque obtienen dos números y cada uno cree que el
+   otro miente. AC-d9.1 fija **el span**, no solo el literal.
 2. **`test_cross_layer_taxonomy` NO fija los bytes.** Fija (a) `set(FORBIDDEN_KEYS)` igual al
    frozenset canónico en las seis, (b) equivalencia de **comportamiento** del tokenizador entre
    las seis, (c) que cada escáner desciende en dicts/listas/tuplas y escanea valores. **Del
-   md5 no sabe nada.**
+   md5 no sabe nada** — y ningún otro test lo calcula.
 
 *Consecuencia operativa:* meter una taxonomía nueva **dentro** del bloque en una sola copia no
 rompería nada hoy — ni `test_cross_layer_taxonomy`, ni ningún otro test. La garantía de
 byte-identidad existía **solo en prosa**, que es exactamente lo que N10 prohíbe («ningún
 problema abierto resuelto en prosa sin mecanismo»).
 
-*Por eso AC-d9.1 calcula el md5 dentro del test.* No es ceremonia heredada: es el mecanismo que
-Fase 1 creyó tener y no tenía. Es la primera vez que la byte-identidad del bloque pasa de
-afirmación a test.
+*Por eso AC-d9.1 calcula el md5 dentro del test, con el span declarado.* No es ceremonia
+heredada: es el mecanismo que Fase 1 creyó tener y no tenía. Es la primera vez que la
+byte-identidad del bloque pasa de afirmación a test.
 
-**Señalado para Fase 1** (no se arregla aquí — sería alcance colado en TB.1): el md5 falso
-sigue escrito en 4 DESIGN, el README de C2C-VE y 2 comentarios de `src/`. Corregirlo es un
-nodo de Fase 1, con su gate.
+**Señalado para Fase 1** (no se arregla aquí): el número escrito en los 4 DESIGN, el README de
+C2C-VE y los 2 comentarios de `src/` **es correcto y no se toca**. Lo que a Fase 1 le falta es
+(a) declarar junto al número el span que lo produce y (b) el test de byte-identidad en las seis
+capas, que AC-d9.1 solo da para B2B-VE. Eso es un nodo de Fase 1, con su gate.
 
 ## 3. El hallazgo incómodo — la lista de vigilancia TAMBIÉN colisiona
 
@@ -153,8 +172,8 @@ otro sitio de Fase 2.
 1. Crear el árbol `B2B-VE/` a partir de `B2B/{src,tests}` + goldens (patrón TA.2). `B2B/`
    queda intacto como referencia upstream.
 2. Nuevo módulo `B2B-VE/src/firewall/herencia.py` que contiene el bloque `BEGIN…END`
-   **byte-idéntico** al de las seis capas C2C-VE (md5 `758094a9`), y **nada más** dentro del
-   bloque.
+   **byte-idéntico** al de las seis capas C2C-VE (md5 `5d693ecf1833fb760e173ee3db30a263`, span
+   canónico = bloque completo con su `\n` final, 3023 bytes), y **nada más** dentro del bloque.
 3. **No** se copia `MARKET_KEYS`, `RECIPROCITY_LEDGER_KEYS`, `TASA_KEYS`, `CLAVES_MERCADO`,
    `_ENVELOPE_KEYS` ni `_contains_forbidden_key`.
 4. La taxonomía FX de D1 (`TASA_KEYS` B2B) va en una lista **privada** de `d1`, fuera del

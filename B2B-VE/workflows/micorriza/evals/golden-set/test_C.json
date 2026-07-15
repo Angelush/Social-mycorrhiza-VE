@@ -1,0 +1,169 @@
+{
+  "input": {
+    "cell_id": "cellC",
+    "members": [
+      {
+        "id": "A",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "B",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "C",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "D",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "E",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000
+      }
+    ],
+    "obligations": [
+      {
+        "id": "p1",
+        "debtor": "A",
+        "creditor": "B",
+        "amount_cents": 3000
+      },
+      {
+        "id": "p2",
+        "debtor": "A",
+        "creditor": "B",
+        "amount_cents": 7000
+      },
+      {
+        "id": "o3",
+        "debtor": "B",
+        "creditor": "C",
+        "amount_cents": 8000
+      },
+      {
+        "id": "o4",
+        "debtor": "C",
+        "creditor": "A",
+        "amount_cents": 5000
+      },
+      {
+        "id": "o5",
+        "debtor": "C",
+        "creditor": "D",
+        "amount_cents": 4000
+      },
+      {
+        "id": "o6",
+        "debtor": "D",
+        "creditor": "A",
+        "amount_cents": 6000
+      },
+      {
+        "id": "o7",
+        "debtor": "D",
+        "creditor": "E",
+        "amount_cents": 5000
+      }
+    ]
+  },
+  "expected_output": {
+    "cell_id": "cellC",
+    "settlements": [
+      {
+        "obligation_id": "p1",
+        "reduce_by_cents": 3000
+      },
+      {
+        "obligation_id": "p2",
+        "reduce_by_cents": 5000
+      },
+      {
+        "obligation_id": "o3",
+        "reduce_by_cents": 8000
+      },
+      {
+        "obligation_id": "o4",
+        "reduce_by_cents": 5000
+      },
+      {
+        "obligation_id": "o5",
+        "reduce_by_cents": 3000
+      },
+      {
+        "obligation_id": "o6",
+        "reduce_by_cents": 3000
+      }
+    ],
+    "residual_obligations": [
+      {
+        "debtor": "A",
+        "creditor": "B",
+        "amount_cents": 2000
+      },
+      {
+        "debtor": "C",
+        "creditor": "D",
+        "amount_cents": 1000
+      },
+      {
+        "debtor": "D",
+        "creditor": "A",
+        "amount_cents": 3000
+      },
+      {
+        "debtor": "D",
+        "creditor": "E",
+        "amount_cents": 5000
+      }
+    ],
+    "metrics": {
+      "gross_debt_before_cents": 38000,
+      "gross_debt_after_cents": 11000,
+      "reduction_pct": 71.052632,
+      "cycles_cancelled": 2
+    },
+    "net_positions": {
+      "A": 1000,
+      "B": 2000,
+      "C": -1000,
+      "D": -7000,
+      "E": 5000
+    },
+    "credit_flags": [
+      "E"
+    ],
+    "audit_trace": [
+      {
+        "cycle": [
+          "A",
+          "B",
+          "C",
+          "A"
+        ],
+        "min_edge_cents": 5000
+      },
+      {
+        "cycle": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A"
+        ],
+        "min_edge_cents": 3000
+      }
+    ]
+  }
+}

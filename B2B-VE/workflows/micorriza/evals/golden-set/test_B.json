@@ -1,0 +1,115 @@
+{
+  "input": {
+    "cell_id": "cellB",
+    "members": [
+      {
+        "id": "A",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "B",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "C",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      },
+      {
+        "id": "D",
+        "turnover_cents": 1000000000000,
+        "credit_min_cents": -1000000000000,
+        "credit_max_cents": 1000000000000
+      }
+    ],
+    "obligations": [
+      {
+        "id": "o1",
+        "debtor": "A",
+        "creditor": "B",
+        "amount_cents": 10000
+      },
+      {
+        "id": "o2",
+        "debtor": "B",
+        "creditor": "C",
+        "amount_cents": 6000
+      },
+      {
+        "id": "o3",
+        "debtor": "C",
+        "creditor": "A",
+        "amount_cents": 4000
+      },
+      {
+        "id": "o4",
+        "debtor": "D",
+        "creditor": "A",
+        "amount_cents": 2500
+      }
+    ]
+  },
+  "expected_output": {
+    "cell_id": "cellB",
+    "settlements": [
+      {
+        "obligation_id": "o1",
+        "reduce_by_cents": 4000
+      },
+      {
+        "obligation_id": "o2",
+        "reduce_by_cents": 4000
+      },
+      {
+        "obligation_id": "o3",
+        "reduce_by_cents": 4000
+      }
+    ],
+    "residual_obligations": [
+      {
+        "debtor": "A",
+        "creditor": "B",
+        "amount_cents": 6000
+      },
+      {
+        "debtor": "B",
+        "creditor": "C",
+        "amount_cents": 2000
+      },
+      {
+        "debtor": "D",
+        "creditor": "A",
+        "amount_cents": 2500
+      }
+    ],
+    "metrics": {
+      "gross_debt_before_cents": 22500,
+      "gross_debt_after_cents": 10500,
+      "reduction_pct": 53.333333,
+      "cycles_cancelled": 1
+    },
+    "net_positions": {
+      "A": -3500,
+      "B": 4000,
+      "C": 2000,
+      "D": -2500
+    },
+    "credit_flags": [],
+    "audit_trace": [
+      {
+        "cycle": [
+          "A",
+          "B",
+          "C",
+          "A"
+        ],
+        "min_edge_cents": 4000
+      }
+    ]
+  }
+}

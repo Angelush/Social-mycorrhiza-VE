@@ -30,22 +30,30 @@ El test extrae el bloque `BEGIN…END` de `B2B-VE/src/firewall/herencia.py` por 
 md5 y lo compara con el literal:
 
 ```python
-BLOQUE_MD5 = "758094a99054feffa153c869ecf17d5b"   # verificado en TB.1 sobre las 6 capas C2C-VE
+# SPAN CANÓNICO: desde '# === BEGIN shared firewall machinery' hasta
+# '# === END shared firewall machinery ===' INCLUIDO SU '\n' FINAL. 3023 bytes.
+# El span es parte del contrato: un md5 sin span declarado no es verificable (ver ../spec.md §2.1).
+BLOQUE_MD5 = "5d693ecf1833fb760e173ee3db30a263"   # = el '5d693ec' publicado en Fase 1
 ```
 
-Pass/fail: igualdad de cadena.
+Pass/fail: igualdad de cadena. El test comprueba además `len(bloque) == 3023`, de modo que un
+cambio de span falle **por el byte-count** y no por el md5 — un md5 distinto no dice si cambió
+el contenido o la convención; el byte-count sí.
 
-*Porque:* es el mecanismo que **Fase 1 creyó tener y no tenía** (ver `../spec.md` §2.1). El md5
-que circulaba en los DESIGN, el README y los comentarios de C2C-VE era `5d693ec` —
-**incorrecto**, y sobrevivió cinco nodos porque ningún test lo calculaba. Este AC es la primera
-vez que la byte-identidad del bloque pasa de prosa a test (N10).
+*Porque:* es el mecanismo que **Fase 1 creyó tener y no tenía** (ver `../spec.md` §2.1). El
+número de Fase 1 era correcto, pero sobrevivió cinco nodos **sin que ningún test lo calculara**
+— y en TB.1 esa ausencia produjo una falsa alarma que declaró «falso» un valor correcto y a
+punto estuvo de hacer reescribir siete artefactos sanos. Este AC es la primera vez que la
+byte-identidad del bloque pasa de prosa a test (N10).
 
 *Y por qué importa aquí y no allí:* `test_cross_layer_taxonomy` fija el conjunto
 `FORBIDDEN_KEYS` y el comportamiento del tokenizador. Una taxonomía **extra** dentro del bloque
 deja ambos intactos y solo la rompe la byte-identidad (F-d9.3).
 
 **El literal es un dato de entrada, jamás una salida de este nodo** (ST-d9.3): si el md5
-calculado no coincide, la respuesta es arreglar la copia — nunca actualizar el literal.
+calculado no coincide, la respuesta es arreglar la copia — nunca actualizar el literal. **Y el
+span tampoco se ajusta para que cuadre:** ese es exactamente el movimiento que hizo TB.1 al
+declarar falso un número correcto. Si no cuadra, cuadra la copia o se para el nodo.
 
 ## AC-d9.2 — Nada de fuera del bloque se heredó
 

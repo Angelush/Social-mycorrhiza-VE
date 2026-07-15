@@ -6,7 +6,8 @@
 ## MUST
 
 - **C-d9.1 — El bloque `BEGIN…END shared firewall machinery` se copia byte a byte, md5
-  `758094a9`.** *Porque:* el md5 es lo que convierte «se respetó el scoping» de afirmación en
+  `5d693ec` (span canónico: bloque completo con su `\n` final, 3023 bytes — el span es parte de
+  la constante, ver spec §2.1).** *Porque:* el md5 es lo que convierte «se respetó el scoping» de afirmación en
   test. Un byte distinto y AC-10 deja de significar nada. Si hace falta cambiar el bloque, se
   cambia en las **siete** copias a la vez (seis capas C2C-VE + B2B-VE) o no se cambia.
 - **C-d9.2 — Nada de fuera del bloque se copia.** Ni `MARKET_KEYS`, ni

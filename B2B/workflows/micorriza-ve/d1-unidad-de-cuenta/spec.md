@@ -129,7 +129,7 @@ es lint secundario». `params` es el único sitio de Fase 2 donde alguien podrí
 guardar una tasa «solo como referencia». El muro es que las obligaciones no llevan moneda; la
 lista es el aviso temprano.
 
-**Fuera del bloque compartido**, en lista privada → md5 `758094a9` intacto (C-d9.3).
+**Fuera del bloque compartido**, en lista privada → md5 `5d693ec` intacto (C-d9.3).
 
 ## 6. Contrato de implementación (TB.2)
 

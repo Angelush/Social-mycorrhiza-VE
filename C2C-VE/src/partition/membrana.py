@@ -118,7 +118,8 @@ MARKET_KEYS = [
 # los tokens de denominación bilingües (usd/ves/dolar/dolares/bolivar/bolivares, añadidos en TA.2),
 # de modo que la moneda solo es representable en la sala `precio_de_mercado`: `don_comunal` e
 # `igualdad` la rechazan (membrana direccional, C-e6, AC-e2). Misma lista, misma referencia; fuera
-# del bloque firewall compartido → md5 5d693ec intacto.
+# del bloque firewall compartido → md5 5d693ecf1833fb760e173ee3db30a263 intacto
+# (span: bloque BEGIN…END completo, incluido su \n final = 3023 bytes).
 CLAVES_MERCADO = MARKET_KEYS
 
 # Libro de reciprocidad: prohibido solo en la sala don_comunal (bilingüe)

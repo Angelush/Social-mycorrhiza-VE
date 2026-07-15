@@ -103,6 +103,8 @@ en un solo sitio.
 | `src/assurance/aseguramiento.py` | shim import + llamada guardada en `resolver` → `ErrorDeInvarianteAseguramiento` (su tipo de brecha) |
 | `tests/test_area_c_modo.py` | nuevo: AC-M1, AC-c1..c6 |
 
-**Invariantes que NO se tocan:** bloque firewall byte-idéntico (md5 `5d693ec` en las 6 — el shim y
+**Invariantes que NO se tocan:** bloque firewall byte-idéntico en las 6 — md5
+`5d693ecf1833fb760e173ee3db30a263` (span: bloque `BEGIN…END` completo, incluido su `\n` final
+= 3023 bytes) — (el shim y
 la llamada van FUERA de `BEGIN/END shared firewall machinery`); `FORBIDDEN_KEYS` canónico
 (`test_cross_layer_taxonomy`); escáneres privados. Piso de regresión: **341 verdes**.

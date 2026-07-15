@@ -44,8 +44,9 @@ cablea el cap por modo.
 NO entra en `JUDGMENT_SIGNALS` (no la amortigua el cortacircuito de contexto; es una
 marca de zona representable y visible, C-f2/AC-C1). Como `ALLOWED_SIGNALS` ya vive
 DESPUÉS de `# === END shared firewall machinery ===`, es taxonomía de dominio privada
-igual que `MARKET_KEYS`/`TASA_KEYS` (patrón TA.6) → **md5 firewall 5d693ec intacto en
-las 6, `test_cross_layer_taxonomy` sin tocar.**
+igual que `MARKET_KEYS`/`TASA_KEYS` (patrón TA.6) → **md5 firewall
+`5d693ecf1833fb760e173ee3db30a263` (span: bloque `BEGIN…END` completo, incluido su `\n` final
+= 3023 bytes) intacto en las 6, `test_cross_layer_taxonomy` sin tocar.**
 
 **Cambios 2+3 — regla traza-ambiental (no-sobre-persona).** Constantes privadas:
 

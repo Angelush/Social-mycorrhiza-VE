@@ -1,7 +1,8 @@
 # DESIGN — TA.5 · Área d · Trinquete asimétrico + `depurar`
 
 > Tabla de cambios ANTES de tocar código (método TA.3/TA.4). Se añade a `src/modo/modo.py`
-> (NO archivo nuevo). Piso de regresión: 362 verdes. Firewall md5 `5d693ec…` intacto (modo.py no
+> (NO archivo nuevo). Piso de regresión: 362 verdes. Firewall md5 `5d693ecf1833fb760e173ee3db30a263`
+> (span: bloque `BEGIN…END` completo, incluido su `\n` final = 3023 bytes) intacto (modo.py no
 > contiene el bloque). Gate: AC-5 completo + monotonía (hypothesis).
 
 ## 1. Orden de modos (ya existe)

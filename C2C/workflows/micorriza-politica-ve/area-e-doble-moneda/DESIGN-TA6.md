@@ -6,7 +6,8 @@
 > DESIGN antes del código.
 
 ## Decisión de firewall (resuelta por la convención ya existente)
-El bloque `BEGIN/END shared firewall` (md5 **5d693ec**) termina en la l.106/121 de cada capa.
+El bloque `BEGIN/END shared firewall` — md5 `5d693ecf1833fb760e173ee3db30a263` (span: bloque
+`BEGIN…END` completo, incluido su `\n` final = 3023 bytes) — termina en la l.106/121 de cada capa.
 Las taxonomías **de dominio** (`MARKET_KEYS`, `RECIPROCITY_LEDGER_KEYS`) ya viven **fuera** del
 bloque, como taxonomías **privadas** de la capa. TA.6 sigue esa convención al pie:
 

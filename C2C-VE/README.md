@@ -109,7 +109,8 @@ retención/alcance/payload es riesgo colectivo, no de un individuo. El código f
   y normaliza acentos (NFD), matchea por **token exacto** (no substring) y por **bigramas**, es
   bilingüe en las cinco taxonomías, y escanea **valores** por patrones de identidad venezolanos
   (cédula/RIF/teléfono) porque su presencia = forma de dossier. El bloque compartido es
-  **byte-idéntico en las 6 capas** (md5 `5d693ec…`), duplicado *a propósito* — no se factoriza para
+  **byte-idéntico en las 6 capas** — md5 `5d693ecf1833fb760e173ee3db30a263` (span: bloque
+  `BEGIN…END` completo, incluido su `\n` final = 3023 bytes) —, duplicado *a propósito* — no se factoriza para
   que ninguna capa pueda ser degradada en aislamiento.
 
 ### Convergencia en desastre (Área f, sobre Capa 5, sin capa nueva)

@@ -150,7 +150,8 @@ class ErrorDeBrechaAseguramiento(ValueError):
 
 # Tipo de cambio irrepresentable dentro del motor (área e, C-e3). Taxonomía PRIVADA de Capa 4
 # (fuera del bloque firewall compartido, como MARKET_KEYS en Capa 1): añadirla aquí NO altera el
-# md5 5d693ec de las 6 capas. Se escanea con la maquinaria compartida _key_matches_taxonomy
+# md5 5d693ecf1833fb760e173ee3db30a263 de las 6 capas (span: bloque BEGIN…END completo,
+# incluido su \n final = 3023 bytes). Se escanea con la maquinaria compartida _key_matches_taxonomy
 # (tokeniza NFD + bigramas + compuesto completo), a cualquier profundidad.
 TASA_KEYS = [
     'tasa_de_cambio', 'tipo_de_cambio', 'exchange_rate', 'fx', 'paralelo', 'bcv',

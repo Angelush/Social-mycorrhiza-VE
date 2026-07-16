@@ -186,11 +186,11 @@ def test_acd41_umbral_incoherente(over, patron):
         ms.verificar_umbral(_politica_3de5(**over))
 
 
-def test_acd41_umbral_1_es_una_wallet():
-    """F-d4.3 — `1 <= 3` es cierto y no basta. Un multisig de umbral 1 es una wallet con pasos
+def test_acd41_umbral_1_es_una_sola_firma():
+    """F-d4.3 — `1 <= 3` es cierto y no basta. Un multisig de umbral 1 es una firma única con pasos
     extra: cualquier firmante mueve el fondo solo, toda la propiedad buscada desaparece, y el
     documento sigue diciendo «multisig»."""
-    with pytest.raises(ValueError, match=r"umbral: minimo 2 \(umbral 1 es una wallet\)"):
+    with pytest.raises(ValueError, match=r"umbral: minimo 2 \(umbral 1 es una sola firma\)"):
         ms.verificar_umbral(_politica_2de3(umbral=1))
 
 

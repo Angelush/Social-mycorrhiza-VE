@@ -259,9 +259,9 @@ def render_report(result: dict) -> str:
     credit_flags = result["credit_flags"]
     audit_trace = result["audit_trace"]
 
-    # D1/C-d1.6 (TB.8b) \u2014 el s\u00edmbolo se deriva de la moneda de la propuesta. El \u00ab\u20ac\u00bb
-    # hardcodeado de upstream era una mentira en cuanto la unidad de cuenta dej\u00f3 de ser el
-    # euro, y esta propuesta la lee el comit\u00e9 para RATIFICAR.
+    # D1/C-d1.6 (TB.8b) — el símbolo se deriva del campo `moneda` de la propuesta. El «€»
+    # hardcodeado de upstream era una mentira en cuanto la unidad de cuenta dejó de ser el
+    # euro, y esta propuesta la lee el comité para RATIFICAR.
     simbolo = _SIMBOLO[result["moneda"]]
 
     def format_cents(cents: int) -> str:

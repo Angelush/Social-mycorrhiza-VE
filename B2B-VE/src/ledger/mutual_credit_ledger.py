@@ -82,7 +82,7 @@ def _is_strict_int(x) -> bool:
 # heredada y siguen siendo vocabulario natural de este dominio (el comité vetea). La colisión
 # está dormida solo mientras se elijan bien los nombres — por eso el campo se llama `avalista`
 # y no `veto_del_comite`. Si algún día una clave necesaria colisiona: se renombra LA CLAVE,
-# jamás la taxonomía (E-d5.2/N-d9.1 — es compartida con seis capas C2C-VE donde esos tokens sí
+# jamás la taxonomía (E-d5.2/N-d9.1 — es compartida con seis capas C2C-VE donde esas palabras sí
 # nombran vigilancia).
 _REF_KEYS_OBLIGATORIAS = ("avalista", "relacion_declarada", "antiguedad_meses")
 _REF_KEYS_OPCIONALES = ("nota",)
@@ -236,7 +236,7 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
         if params["velocity_max_cents"] <= 0:
             raise ValueError("velocity_max_cents")
 
-        # D1 — la moneda de la célula. Sin default implícito: una célula que no dice en qué
+        # D1 — la unidad de cuenta de la célula. Sin default implícito: una célula que no dice en qué
         # unidad de cuenta lleva sus saldos no tiene invariante L1 que verificar.
         moneda = params.get("moneda")
         if moneda not in MONEDAS:
@@ -968,7 +968,7 @@ def member_statement(state: dict, member_id: str, scope: str, solicitante: str |
     return salida
 
 def _fmt_cents(cents: int, moneda: str) -> str:
-    """Formatea un importe con el símbolo de la moneda de la CÉLULA (C-d1.6).
+    """Formatea un importe con el símbolo de la unidad de cuenta de la CÉLULA (C-d1.6).
 
     Antes era `_fmt_eur` con «€» hardcodeado. El símbolo se deriva de params["moneda"]: un
     extracto es lo que lee el humano que decide, y decidir sobre un número con la etiqueta

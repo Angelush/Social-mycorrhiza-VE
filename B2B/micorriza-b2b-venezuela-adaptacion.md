@@ -37,7 +37,7 @@
 ## 2. El contexto operativo venezolano que manda (verificado jul. 2026)
 
 1. **Dolarización de facto + bolívar en depreciación persistente** (>70% perdido desde oct. 2025; inflación ~229%). Doble circulación real: USD para valor, VES para menudeo y obligaciones estatales.
-2. **Brecha cambiaria viva y grande**: BCV ~Bs. 700 vs. USDT P2P ~Bs. 816 (jul. 2026) = **~16,5%**. Implicación de diseño: NO existe "el" tipo de cambio; cualquier conversión automática incrusta una decisión política → **el FX es irrepresentable en el motor** (invariante heredada del fork C2C, aquí con justificación empírica).
+2. **Brecha cambiaria viva y móvil**: **12,27% al 2026-07-15** (BCV 725,74 · paralelo medio 814,83; frente al «dólar digital», >18%) — dato VOLÁTIL: vale lo que diga la última verificación fechada, ver [`docs/verificaciones/2026-07-15-cripto.md`](../docs/verificaciones/2026-07-15-cripto.md) hallazgo 5 (corrigió el ~16,5% que este documento traía: la brecha se ESTRECHÓ; los rieles difieren ~8% entre sí, por eso el motor no elige tasa). Implicación de diseño: NO existe "el" tipo de cambio; cualquier conversión automática incrusta una decisión política → **el FX es irrepresentable en el motor** (invariante heredada del fork C2C, aquí con justificación empírica).
 3. **Cripto como riel funcional, no especulación**: USDT domina P2P (~90% del libro VES); usado para nómina, remesas, pagos a proveedores y ahorro. La adopción la impulsan condiciones domésticas, no ciclos de mercado.
 4. **Ni USDT es un dólar perfecto**: primas P2P de hasta ~40% en pánico (ene. 2026). El sistema JAMÁS asume 1 USDT = 1 USD en los bordes; los spreads de liquidación son decisión humana.
 5. **Banca rota**: corresponsalía internacional cortada, controles de capital residuales, mesas de cambio con cupos, crédito comercial casi inexistente.
@@ -105,7 +105,7 @@
 | Regulador cripto | Sunacrip intervenida (2023, escándalo ~$3.000M); marco en limbo/reforma; Petro terminado (2024) | No hay ruta de "autorización" equivalente a MiCA que buscar; el riesgo es enforcement arbitrario, no incumplimiento de una norma clara |
 | Fiscal | IGTF 3% a pagos en divisas/cripto fuera de banca nacional; ofensiva SENIAT sobre USDT en curso (bases legales de 2020) | Compliance-READY: exportes contables limpios por miembro; el crédito mutuo como compensación de obligaciones tiene tratamiento ambiguo → asesoría fiscal local antes de escalar; no prometer neutralidad fiscal a los miembros |
 | Sanciones (lado diáspora/US-persons) | EOs vigentes; 15+ GLs de flexibilización revocables; ~150-200 SDN activos; responsabilidad estricta | Screening SDN; operar bajo GLs de remesas/ONG; diseño con botón de pausa del puente ante *snapback* |
-| Cambiario | Brecha BCV/paralelo ~16,5% y móvil | FX irrepresentable en el motor; conversión = decisión humana documentada |
+| Cambiario | Brecha BCV/paralelo móvil (12,27% al 2026-07-15 — ver `docs/verificaciones/2026-07-15-cripto.md`, la fuente fechada manda sobre esta tabla) | FX irrepresentable en el motor; conversión = decisión humana documentada |
 | **Bandera de verificación** | Todo lo anterior está EN FLUJO tras la transición de enero 2026 | Re-verificar sanciones, marco cripto y fiscal ANTES de cada etapa de despliegue; fechar cada verificación en el repo |
 
 ---

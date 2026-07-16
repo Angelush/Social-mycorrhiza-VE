@@ -244,10 +244,10 @@ def verificar_umbral(politica):
         raise ValueError("total: no es un entero")
 
     if umbral < _UMBRAL_MIN:
-        # F-d4.3: un multisig de umbral 1 es una wallet con pasos extra. Cualquier firmante
+        # F-d4.3: un multisig de umbral 1 es una firma única con pasos extra. Cualquier firmante
         # mueve el fondo solo, toda la propiedad buscada desaparece, y el documento sigue
         # diciendo «multisig».
-        raise ValueError("umbral: minimo %d (umbral 1 es una wallet)" % _UMBRAL_MIN)
+        raise ValueError("umbral: minimo %d (umbral 1 es una sola firma)" % _UMBRAL_MIN)
     if umbral > total:
         raise ValueError("umbral: mayor que total")
     if total > _TOTAL_MAX:

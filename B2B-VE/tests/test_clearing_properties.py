@@ -37,7 +37,7 @@ def graphs(draw):
         amt = draw(st.integers(min_value=1, max_value=100000))
         obligations.append({"id": f"o{i}", "debtor": d, "creditor": c,
                             "amount_cents": amt})
-    return {"cell_id": "prop", "members": [_member(m) for m in MEMBERS],
+    return {"cell_id": "prop", "moneda": "USD", "members": [_member(m) for m in MEMBERS],
             "obligations": obligations}
 
 

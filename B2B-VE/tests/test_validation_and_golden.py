@@ -25,6 +25,7 @@ def member(id_, cmin=-10**12, cmax=10**12, turnover=10**12):
 def base():
     return {
         "cell_id": "v",
+        "moneda": "USD",
         "members": [member("A"), member("B")],
         "obligations": [
             {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 100},
@@ -207,7 +208,7 @@ def test_debtor_unknown():
 
 # ---------- EDGE CASE ----------
 def test_zero_obligations_noop():
-    out = clear({"cell_id": "empty", "members": [member("A"), member("B")], "obligations": []})
+    out = clear({"cell_id": "empty", "moneda": "USD", "members": [member("A"), member("B")], "obligations": []})
     assert out["settlements"] == []
     assert out["residual_obligations"] == []
     assert out["metrics"] == {"gross_debt_before_cents": 0, "gross_debt_after_cents": 0,
@@ -224,7 +225,7 @@ def test_golden_regression(fname):
 
 # ---------- RENDERER TESTS ----------
 CYCLE3 = {
-    "cell_id": "cellA",
+    "cell_id": "cellA", "moneda": "USD",
     "members": [member("A"), member("B"), member("C")],
     "obligations": [
         {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 10000},
@@ -242,13 +243,15 @@ def test_renderer_cycle3():
     for h in ["## Metrics", "## Settlements", "## Residual obligations",
               "## Net positions", "## Credit flags", "## Audit trace"]:
         assert h in rep
-    assert "100.00 €" in rep
+    # TB.8b: la célula es USD → "$"; el "€" hardcodeado era el defecto de D1 que TB.8 destapó.
+    assert "100.00 $" in rep
+    assert "€" not in rep
     assert "- none" in rep
 
 def test_renderer_deterministic():
     assert render_report(clear(CYCLE3)) == render_report(clear(CYCLE3))
 
-SYNTH = {"cell_id": "x", "settlements": [],
+SYNTH = {"cell_id": "x", "moneda": "USD", "settlements": [],
          "residual_obligations": [{"debtor": "A", "creditor": "B", "amount_cents": 2550}],
          "metrics": {"gross_debt_before_cents": 2550, "gross_debt_after_cents": 2550,
                      "reduction_pct": 0.0, "cycles_cancelled": 0},
@@ -256,6 +259,7 @@ SYNTH = {"cell_id": "x", "settlements": [],
 
 def test_renderer_synthetic_negative():
     rep = render_report(SYNTH)
-    assert "-25.50 €" in rep
-    assert "25.50 €" in rep
-    assert "- A: -25.50 €" in rep
+    assert "-25.50 $" in rep
+    assert "25.50 $" in rep
+    assert "- A: -25.50 $" in rep
+    assert "€" not in rep

@@ -77,7 +77,7 @@ def member(id_, cmin=-10**12, cmax=10**12, turnover=10**12):
 # Fixtures — Tests A / B / C from evals/tests.md
 # --------------------------------------------------------------------------
 TEST_A = {
-    "cell_id": "cellA",
+    "cell_id": "cellA", "moneda": "USD",
     "members": [member("A"), member("B"), member("C")],
     "obligations": [
         {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 10000},
@@ -87,7 +87,7 @@ TEST_A = {
 }
 
 TEST_B = {
-    "cell_id": "cellB",
+    "cell_id": "cellB", "moneda": "USD",
     "members": [member("A"), member("B"), member("C"), member("D")],
     "obligations": [
         {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 10000},
@@ -101,7 +101,7 @@ TEST_B = {
 # E receives 5000 net (creditor of D->E) and never pays out, so its net = +5000,
 # above credit_max 1000 -> must be flagged, never clamped.
 TEST_C = {
-    "cell_id": "cellC",
+    "cell_id": "cellC", "moneda": "USD",
     "members": [member("A"), member("B"), member("C"),
                 member("D"), member("E", cmax=1000)],
     "obligations": [
@@ -149,7 +149,7 @@ def test_ac2_debt_reduced_when_cycle(name):
 
 def test_ac2_acyclic_unchanged():
     data = {
-        "cell_id": "chain",
+        "cell_id": "chain", "moneda": "USD",
         "members": [member("A"), member("B"), member("C")],
         "obligations": [
             {"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 500},
@@ -219,21 +219,21 @@ def test_ac6_no_false_flag():
 # Input validation (E2): reject malformed input, no silent repair
 # --------------------------------------------------------------------------
 def test_reject_self_loop():
-    data = {"cell_id": "x", "members": [member("A")],
+    data = {"cell_id": "x", "moneda": "USD", "members": [member("A")],
             "obligations": [{"id": "o1", "debtor": "A", "creditor": "A", "amount_cents": 5}]}
     with pytest.raises(ValueError):
         clear(data)
 
 
 def test_reject_unknown_member():
-    data = {"cell_id": "x", "members": [member("A")],
+    data = {"cell_id": "x", "moneda": "USD", "members": [member("A")],
             "obligations": [{"id": "o1", "debtor": "A", "creditor": "Z", "amount_cents": 5}]}
     with pytest.raises(ValueError):
         clear(data)
 
 
 def test_reject_nonpositive_amount():
-    data = {"cell_id": "x", "members": [member("A"), member("B")],
+    data = {"cell_id": "x", "moneda": "USD", "members": [member("A"), member("B")],
             "obligations": [{"id": "o1", "debtor": "A", "creditor": "B", "amount_cents": 0}]}
     with pytest.raises(ValueError):
         clear(data)

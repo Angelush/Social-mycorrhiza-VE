@@ -27,13 +27,23 @@ from typing import Dict, List, Tuple
 
 Edge = Tuple[str, str]  # (debtor, creditor)
 
+# D1 (TB.8b) — mono-moneda por célula; el símbolo se deriva, jamás se hardcodea (C-d1.6).
+# Duplicado a propósito respecto al mapa del ledger: el solver no importa el ledger y no debe
+# (D9 los separó); el anti-drift lo fija un test de igualdad de los dos mapas.
+_SIMBOLO = {"USD": "$", "VES": "Bs."}
 
-def _validate(data: dict) -> Tuple[str, List[dict], List[dict]]:
+
+def _validate(data: dict) -> Tuple[str, str, List[dict], List[dict]]:
     if not isinstance(data, dict):
         raise ValueError("input must be a dict")
     cell_id = data.get("cell_id")
     if not isinstance(cell_id, str) or not cell_id:
         raise ValueError("missing or invalid cell_id")
+    # D1 — sin default: un default sería la configuración que nadie revisa (F-d3.1) y el
+    # defecto del «€» seguiría vivo para todo llamador que no la pase. EUR no es válido.
+    moneda = data.get("moneda")
+    if moneda not in _SIMBOLO:
+        raise ValueError("missing or invalid moneda")
     members = data.get("members", [])
     if not isinstance(members, list):
         raise ValueError("members must be a list")
@@ -85,7 +95,7 @@ def _validate(data: dict) -> Tuple[str, List[dict], List[dict]]:
             raise ValueError(f"self-loop obligation: {oid}")
         if o["debtor"] not in member_ids or o["creditor"] not in member_ids:
             raise ValueError(f"obligation {oid} references unknown member")
-    return cell_id, members, obligations
+    return cell_id, moneda, members, obligations
 
 
 def _net_positions(member_ids, obligations) -> Dict[str, int]:
@@ -147,7 +157,7 @@ def _find_cycle(weights: Dict[Edge, int]) -> List[str] | None:
 
 
 def clear(data: dict) -> dict:
-    cell_id, members, obligations = _validate(data)
+    cell_id, moneda, members, obligations = _validate(data)
     member_ids = [m["id"] for m in members]
 
     pre_net = _net_positions(member_ids, obligations)
@@ -223,6 +233,9 @@ def clear(data: dict) -> dict:
 
     return {
         "cell_id": cell_id,
+        # D1 (TB.8b) — la propuesta que el comité ratifica declara en qué unidad habla;
+        # el render no puede derivar lo que el resultado no lleva.
+        "moneda": moneda,
         "settlements": settlements,
         "residual_obligations": residual,
         "metrics": {
@@ -246,10 +259,15 @@ def render_report(result: dict) -> str:
     credit_flags = result["credit_flags"]
     audit_trace = result["audit_trace"]
 
+    # D1/C-d1.6 (TB.8b) \u2014 el s\u00edmbolo se deriva de la moneda de la propuesta. El \u00ab\u20ac\u00bb
+    # hardcodeado de upstream era una mentira en cuanto la unidad de cuenta dej\u00f3 de ser el
+    # euro, y esta propuesta la lee el comit\u00e9 para RATIFICAR.
+    simbolo = _SIMBOLO[result["moneda"]]
+
     def format_cents(cents: int) -> str:
         sign = "-" if cents < 0 else ""
         a = abs(cents)
-        return f"{sign}{a // 100}.{a % 100:02d} \u20ac"
+        return f"{sign}{a // 100}.{a % 100:02d} {simbolo}"
 
     lines = []
     lines.append(f"# Settlement proposal — {cell_id}")

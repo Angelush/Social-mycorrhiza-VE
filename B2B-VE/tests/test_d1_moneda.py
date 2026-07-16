@@ -225,3 +225,122 @@ def test_d1_simbolo_derivado():
     assert "Bs." in render_ves
     assert "€" not in render_ves
     assert "$" not in render_ves
+
+
+# ============================================================================
+# TB.8b — AC-d1.7 COMPLETO: el solver también dice la verdad (defecto hallado
+# por TB.8: `render_report` imprimía «€» hardcodeado; el test de AC-d1.7 solo
+# cubría `render_statement` → verde certificando la mitad del AC).
+# ============================================================================
+
+sol = _load("clearing_solver_d1", "src/clearing/clearing_solver.py")
+
+
+def _celula_con_ciclo(params, cell_id):
+    """Célula con un ciclo A→B→C→A para que la propuesta tenga contenido."""
+    state, _ = led.create_cell(cell_id, params, ratified_by="admin", ts=1000)
+    for i, mid in enumerate("ABC"):
+        state, _ = led.add_member(state, {"id": mid, "turnover_cents": 100000000},
+                                  ratified_by="admin", ts=1001 + i)
+    for i, (d, c) in enumerate([("A", "B"), ("B", "C"), ("C", "A")]):
+        state, _ = led.record_obligation(
+            state, {"id": f"o{i}", "debtor": d, "creditor": c, "amount_cents": 72574},
+            ts=1010 + i)
+    return state
+
+
+def test_acd17_render_report_usd_dice_dolares():
+    """AC-d1.7 sobre render_report: célula USD → «$», jamás «€» ni «Bs.»."""
+    state = _celula_con_ciclo(PARAMS_USD, "cell-usd-solver")
+    rep = sol.render_report(sol.clear(led.to_clearing_input(state)))
+    assert "725.74 $" in rep
+    assert "€" not in rep
+    assert "Bs." not in rep
+
+
+def test_acd17_render_report_ves_dice_bolivares():
+    """AC-d1.7 sobre render_report: célula VES → «Bs.», jamás «€» ni «$».
+
+    ESTE es el defecto que TB.8 destapó: una célula VES emitía una propuesta de
+    liquidación que decía «725.74 €» — la mentira exacta que C-d1.6 prohíbe, en
+    el documento que el comité lee para RATIFICAR.
+    """
+    state = _celula_con_ciclo(PARAMS_VES, "cell-ves-solver")
+    rep = sol.render_report(sol.clear(led.to_clearing_input(state)))
+    assert "725.74 Bs." in rep
+    assert "€" not in rep
+    assert "$" not in rep
+
+
+def test_acd17_solver_sin_moneda_rechaza():
+    """Sin default (F-d3.1): un input sin moneda no adivina — lanza."""
+    state = _celula_con_ciclo(PARAMS_USD, "cell-sin-moneda")
+    data = led.to_clearing_input(state)
+    del data["moneda"]
+    with pytest.raises(ValueError, match="missing or invalid moneda"):
+        sol.clear(data)
+
+
+def test_acd17_el_euro_es_irrepresentable():
+    """Control negativo: «EUR» no es moneda deprecada — es irrepresentable en el fork."""
+    state = _celula_con_ciclo(PARAMS_USD, "cell-eur")
+    data = led.to_clearing_input(state)
+    data["moneda"] = "EUR"
+    with pytest.raises(ValueError, match="missing or invalid moneda"):
+        sol.clear(data)
+
+
+def test_acd17_to_clearing_input_lleva_la_moneda():
+    """La moneda viaja con la foto de la célula, y clear() la conserva en la propuesta."""
+    state = _celula_con_ciclo(PARAMS_VES, "cell-ves-input")
+    data = led.to_clearing_input(state)
+    assert data["moneda"] == "VES"
+    assert sol.clear(data)["moneda"] == "VES"
+
+
+def test_acd17_simbolos_ledger_y_solver_no_derivan():
+    """Anti-drift: `_SIMBOLO` está duplicado a propósito (el solver no importa el ledger,
+    D9 los separó). Este test es lo que impide que las dos copias diverjan."""
+    assert sol._SIMBOLO == led._SIMBOLO
+    assert set(sol._SIMBOLO) == set(led.MONEDAS)
+
+
+def test_acd17_apply_clearing_rechaza_moneda_ajena():
+    """Puerta M8 × D1: el evento guarda la propuesta VERBATIM y un auditor la lee —
+    una propuesta ratificada que dijera «Bs.» en una célula USD sería una mentira con
+    firma. Control positivo incluido: la misma propuesta sin adulterar SÍ entra."""
+    state = _celula_con_ciclo(PARAMS_USD, "cell-m8-moneda")
+    proposal = sol.clear(led.to_clearing_input(state))
+    adulterada = dict(proposal, moneda="VES")
+    with pytest.raises(ValueError, match="proposal_moneda"):
+        led.apply_clearing(state, adulterada, "admin", ts=1050)
+    # control positivo: la genuina entra por la misma puerta
+    state2, ev = led.apply_clearing(state, proposal, "admin", ts=1050)
+    assert ev["kind"] == "clearing_applied"
+    assert ev["payload"]["proposal"]["moneda"] == "USD"
+
+
+def test_acd17_ningun_euro_en_el_codigo_de_src():
+    """AC-d1.7, tercer punto: «ningún € en toda la salida de B2B-VE/src/». Se fija en
+    la fuente: ningún literal de CÓDIGO en src/ contiene «€». Los comentarios y
+    docstrings SÍ pueden nombrarlo para explicar el diseño (lección de TB.6b: un test
+    que afirma algo del código no debe comprobarlo sobre la prosa) — se excluyen las
+    constantes en posición de docstring y se recorre todo lo demás, f-strings incluidos.
+    """
+    import ast
+    fuentes = sorted((_BASE / "src").rglob("*.py"))
+    assert fuentes, "src/ vacío: el glob no encontró módulos"
+    for f in fuentes:
+        arbol = ast.parse(f.read_text(encoding="utf-8"))
+        docstrings = set()
+        for nodo in ast.walk(arbol):
+            if isinstance(nodo, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                cuerpo = getattr(nodo, "body", [])
+                if cuerpo and isinstance(cuerpo[0], ast.Expr) and \
+                        isinstance(cuerpo[0].value, ast.Constant) and \
+                        isinstance(cuerpo[0].value.value, str):
+                    docstrings.add(id(cuerpo[0].value))
+        for nodo in ast.walk(arbol):
+            if isinstance(nodo, ast.Constant) and isinstance(nodo.value, str) \
+                    and "\u20ac" in nodo.value and id(nodo) not in docstrings:
+                raise AssertionError(f"literal con \u20ac en {f}:{nodo.lineno}")

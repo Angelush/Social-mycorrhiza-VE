@@ -49,7 +49,8 @@
 | TB.6b | **D8** — `puente.pausar()` reversible por la misma puerta (M8); la pausa no detiene el crédito interno (I-VE7); **M9**: verificación regulatoria fechada previa | TB.6, M9 | pausa del puente | TB.6, **M9** | alto + humano | AC-d68.5/d68.9; suite |
 | TB.7 | **D7** — `exportar_registros(miembro, periodo)` → CSV/JSON limpio | TB.4 | exportes fiscales | TB.4 | medio | AC-7 (seudonimización si público); suite |
 | TB.8 | **D4** — multisig: documento de gobernanza (umbral, firmantes, rotación) + helpers de verificación; **M9**: verificación regulatoria fechada previa | TB.1, M9 | gobernanza de reserva | TB.1 | alto + humano | doc presente; helpers testeados; motor sin claves (N9) |
-| TB.9 | **D10** — branding + README B2B-VE + test de conservación a escala de hiperinflación | TB.2–TB.8 (incl. TB.6b) | B2B-VE completo | TB.2–TB.8, TB.6b | medio | AC-4, AC-9; suite completa |
+| TB.8b | **Correctivo D1** (decisión humana 2026-07-16, antes de TB.9): `render_report` imprimía `€` hardcodeado — defecto hallado por TB.8; completa AC-d1.7 (`moneda` viaja en `to_clearing_input`, el solver la exige sin default, puerta `proposal_moneda` en M8). Ver `d1-unidad-de-cuenta/DESIGN-TB8b.md` | TB.8 | AC-d1.7 completo | TB.8 | medio | AC-d1.7 los 3 puntos; goldens regenerados por construcción; suite |
+| TB.9 | **D10** — branding + README B2B-VE + test de conservación a escala de hiperinflación | TB.2–TB.8b (incl. TB.6b) | B2B-VE completo | TB.2–TB.8b, TB.6b | medio | AC-4, AC-9; suite completa |
 
 ## Fase 3 — Sim-VE (tras Fases 1 y 2)
 

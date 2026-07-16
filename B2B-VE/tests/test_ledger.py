@@ -368,7 +368,7 @@ class TestProposalForgery:
                                        ("o3","C","A",4000,1030), ("o4","D","A",2500,1040)]:
             state, ev = led.record_obligation(state, {"id": oid, "debtor": d, "creditor": c, "amount_cents": amt}, ts)
             events.append(ev)
-        forged = {"cell_id": "cell1", "settlements": [
+        forged = {"cell_id": "cell1", "moneda": "USD", "settlements": [
             {"obligation_id": "o1", "reduce_by_cents": 1000},
             {"obligation_id": "o4", "reduce_by_cents": 1000}
         ]}
@@ -380,7 +380,7 @@ class TestProposalForgery:
                                        ("o3","C","A",4000,1030), ("o4","D","A",2500,1040)]:
             state, ev = led.record_obligation(state, {"id": oid, "debtor": d, "creditor": c, "amount_cents": amt}, ts)
             events.append(ev)
-        split_forged = {"cell_id": "cell1", "settlements": [
+        split_forged = {"cell_id": "cell1", "moneda": "USD", "settlements": [
             {"obligation_id": "o1", "reduce_by_cents": 5000},
             {"obligation_id": "o1", "reduce_by_cents": 5000}
         ]}
@@ -391,7 +391,7 @@ class TestProposalForgery:
         for oid, d, c, amt, ts in [("o1","A","B",10000,1010)]:
             state, ev = led.record_obligation(state, {"id": oid, "debtor": d, "creditor": c, "amount_cents": amt}, ts)
             events.append(ev)
-        forged = {"cell_id": "cell1", "settlements": [
+        forged = {"cell_id": "cell1", "moneda": "USD", "settlements": [
             {"obligation_id": "o99", "reduce_by_cents": 1000}
         ]}
         assert_rejects(state, led.apply_clearing, forged, "ana", 1050)
@@ -401,7 +401,7 @@ class TestProposalForgery:
         for oid, d, c, amt, ts in [("o1","A","B",10000,1010)]:
             state, ev = led.record_obligation(state, {"id": oid, "debtor": d, "creditor": c, "amount_cents": amt}, ts)
             events.append(ev)
-        forged = {"cell_id": "cell2", "settlements": [
+        forged = {"cell_id": "cell2", "moneda": "USD", "settlements": [
             {"obligation_id": "o1", "reduce_by_cents": 4000}
         ]}
         assert_rejects(state, led.apply_clearing, forged, "ana", 1050)

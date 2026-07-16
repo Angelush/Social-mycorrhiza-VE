@@ -52,10 +52,12 @@
         "creditor": "A",
         "amount_cents": 2500
       }
-    ]
+    ],
+    "moneda": "USD"
   },
   "expected_output": {
     "cell_id": "cellB",
+    "moneda": "USD",
     "settlements": [
       {
         "obligation_id": "o1",

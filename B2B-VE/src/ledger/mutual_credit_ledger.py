@@ -547,6 +547,11 @@ def _apply(state: dict | None, kind: str, payload: dict, ts: int) -> tuple[dict,
             raise ValueError("proposal")
         if proposal.get("cell_id") != new_state["cell_id"]:
             raise ValueError(proposal.get("cell_id"))
+        # D1 (TB.8b) — el evento guarda la propuesta VERBATIM y un auditor la lee: una
+        # propuesta ratificada que dijera «Bs.» en una célula USD sería una mentira con
+        # firma. Es la puerta M8 haciendo cumplir D1, no un check de conveniencia.
+        if proposal.get("moneda") != new_state["params"]["moneda"]:
+            raise ValueError("proposal_moneda")
         computed_hash = hashlib.sha256(canonical(proposal)).hexdigest()
         if proposal_hash != computed_hash:
             raise ValueError("proposal_hash")
@@ -879,6 +884,9 @@ def to_clearing_input(state: dict) -> dict:
     obs_list.sort(key=lambda x: x["id"])
     return {
         "cell_id": state_cp["cell_id"],
+        # D1 (TB.8b) — la célula es mono-moneda y este dict ES la foto de la célula: la
+        # moneda viaja con el input para que el solver no tenga que adivinarla (C-d1.6).
+        "moneda": state_cp["params"]["moneda"],
         "members": members_list,
         "obligations": obs_list
     }

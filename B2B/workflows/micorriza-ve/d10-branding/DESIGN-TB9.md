@@ -85,6 +85,6 @@ constante — la vara y lo medido tienen que tener orígenes distintos.**
 `token`); `herencia.py` ADMITIDA con motivo (léxico + bloque congelado); «petro» en la
 verificación firmada, fuera del scan (manda el artefacto).
 
-**PENDIENTE — GATE HUMANO (no fingido, ST-d10.3):** **AC-9** (checklist de honestidad: leer
-`B2B-VE/README.md` frase por frase) y **AC-d10.5** (confirmar el orden por consecuencia).
-Hasta esa lectura, TB.9 está EJECUTADO pero no CERRADO.
+**GATE HUMANO SALDADO — AC-9 y AC-d10.5 APROBADOS por el propietario el 2026-07-17**
+(«APROBADO. Cierra la fase 2»). Con esa aprobación **TB.9 queda CERRADO y Fase 2 CERRADA**.
+Piso final de Fase 2: **B2B-VE 404 passed + 3 skipped** · B2B 125+3 · C2C-VE 441.

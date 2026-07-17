@@ -1,20 +1,22 @@
-## What & why
+## Qué y por qué
 
-<!-- What does this change do, and why? -->
+<!-- ¿Qué hace este cambio, y por qué? -->
 
-## Sub-project
+## Sub-proyecto
 
-- [ ] B2B
-- [ ] C2C
-- [ ] Sim
-- [ ] Cross-cutting / docs
+- [ ] B2B / B2B-VE
+- [ ] C2C / C2C-VE
+- [ ] Sim / Sim-VE
+- [ ] Transversal / docs
 
-## Invariants checked
+## Invariantes verificadas
 
-<!-- Which design invariants did you verify this against? See CONTRIBUTING.md.
-     e.g. proposer/disposer split, invariants-halt-not-average, sim-drives-real-code. -->
+<!-- ¿Contra qué invariantes de diseño lo verificaste? Ver CONTRIBUTING.md.
+     P. ej.: el-agente-propone-la-puerta-dispone, invariante-rota-detiene-no-promedia,
+     la-sim-conduce-el-código-real, FX-irrepresentable. -->
 
 ## Tests
 
-- [ ] Added/updated tests for new behavior
-- [ ] All relevant suites pass locally
+- [ ] Tests añadidos/actualizados para el comportamiento nuevo
+- [ ] Si hay tests de criterio nuevos: verificados por mutación
+- [ ] Todas las suites relevantes pasan en local

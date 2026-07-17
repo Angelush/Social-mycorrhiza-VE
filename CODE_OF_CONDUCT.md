@@ -1,34 +1,34 @@
-# Code of Conduct
+# Código de conducta
 
-## Our pledge
+## Nuestro compromiso
 
-We pledge to make participation in this project a harassment-free experience for everyone,
-regardless of age, body size, disability, ethnicity, gender identity and expression, level
-of experience, nationality, personal appearance, race, religion, or sexual identity and
-orientation.
+Nos comprometemos a que la participación en este proyecto sea una experiencia libre de acoso
+para cualquier persona, sin distinción de edad, tamaño corporal, discapacidad, etnia,
+identidad y expresión de género, nivel de experiencia, nacionalidad, apariencia, raza,
+religión, identidad u orientación sexual.
 
-## Our standards
+## Nuestros estándares
 
-Examples of behavior that contributes to a positive environment:
+Ejemplos de conducta que contribuye a un ambiente positivo:
 
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the project and community
+- Usar lenguaje acogedor e inclusivo
+- Respetar puntos de vista y experiencias distintos
+- Aceptar con elegancia la crítica constructiva
+- Centrarse en lo mejor para el proyecto y la comunidad
 
-Unacceptable behavior includes:
+Conducta inaceptable:
 
-- Harassment, insulting or derogatory comments, and personal or political attacks
-- Publishing others' private information without explicit permission
-- Other conduct which could reasonably be considered inappropriate
+- Acoso, comentarios insultantes o despectivos, y ataques personales o políticos
+- Publicar información privada de terceros sin permiso explícito
+- Cualquier otra conducta razonablemente considerable como inapropiada
 
-## Enforcement
+## Aplicación
 
-Instances of abusive or otherwise unacceptable behavior may be reported to the project
-maintainer. All complaints will be reviewed and investigated and will result in a response
-deemed necessary and appropriate to the circumstances.
+Los casos de conducta abusiva o inaceptable pueden reportarse a quien mantiene el proyecto.
+Toda queja será revisada e investigada, con la respuesta que se considere necesaria y
+apropiada a las circunstancias.
 
-## Attribution
+## Atribución
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org),
-version 2.1.
+Este código de conducta es una adaptación del
+[Contributor Covenant](https://www.contributor-covenant.org), versión 2.1.

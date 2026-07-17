@@ -1,23 +1,23 @@
 ---
-name: Bug report
-about: Report a defect (or a suspected invariant violation)
+name: Reporte de bug
+about: Reporta un defecto (o una sospecha de violación de invariante)
 title: "[bug] "
 labels: bug
 ---
 
-**Sub-project:** B2B / C2C / Sim
+**Sub-proyecto:** B2B / B2B-VE / C2C / C2C-VE / Sim / Sim-VE
 
-**What happened**
-<!-- A clear description of the bug. If it's a suspected invariant violation,
-     include the exploit trace — that's the most valuable kind of report here. -->
+**Qué pasó**
+<!-- Descripción clara del bug. Si es una sospecha de violación de invariante,
+     incluye la traza del exploit — es el reporte más valioso que existe aquí. -->
 
-**Minimal reproduction**
+**Reproducción mínima**
 ```
-# steps / command / input
+# pasos / comando / entrada
 ```
 
-**Expected behavior**
+**Comportamiento esperado**
 
-**Environment**
-- OS:
-- Python version:
+**Entorno**
+- SO:
+- Versión de Python:

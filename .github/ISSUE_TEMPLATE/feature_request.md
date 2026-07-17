@@ -1,16 +1,17 @@
 ---
-name: Feature request / design proposal
-about: Suggest an idea, keeping the project's design invariants in mind
-title: "[proposal] "
+name: Propuesta de mejora / diseño
+about: Sugiere una idea, con las invariantes de diseño del proyecto presentes
+title: "[propuesta] "
 labels: enhancement
 ---
 
-**The problem / motivation**
-<!-- What are you trying to enable? -->
+**El problema / la motivación**
+<!-- ¿Qué intentas habilitar? -->
 
-**Proposed approach**
+**Enfoque propuesto**
 
-**Invariant check**
-<!-- Does this tension any core invariant? (proposer/disposer split,
-     invariants-halt-not-average, sim-drives-real-code, anti-surveillance-first)
-     If so, explain how you'd preserve it. See CONTRIBUTING.md. -->
+**Chequeo de invariantes**
+<!-- ¿Tensiona alguna invariante central? (el-agente-propone-la-puerta-dispone,
+     invariante-rota-detiene-no-promedia, la-sim-conduce-el-código-real,
+     anti-vigilancia-primero, FX-irrepresentable)
+     Si sí, explica cómo la preservarías. Ver CONTRIBUTING.md. -->

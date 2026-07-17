@@ -1,51 +1,60 @@
-# Contributing to Micorriza
+# Contribuir a Micorriza-VE
 
-Thanks for your interest. This project values a few things strongly — please read before
-opening a PR.
+Gracias por el interés. Este proyecto valora unas pocas cosas con fuerza — léelas antes de
+abrir un PR.
 
-## Ground rules (non-negotiable design invariants)
+## Reglas de base (invariantes de diseño, no negociables)
 
-1. **The agent proposes, the gate disposes.** Anything that moves real value must remain
-   deterministic and human-gated. Do not automate the irreversible one-way door.
-2. **Invariants halt, they don't average.** A violated invariant is a headline (a stopped
-   run + an exploit trace), never a data point folded into a pass rate.
-3. **The simulation drives the real code.** `Sim/` must never become a second copy of the
-   mechanism. Test against the real systems under test, not mocks.
-4. **Anti-surveillance first (social branch).** Do not add legibility/scoring features ahead
-   of the parts that make scoring impossible to weaponize.
+1. **El agente propone, la puerta dispone.** Todo lo que mueva valor real permanece
+   determinista y con puerta humana. No automatices la puerta irreversible de un solo sentido.
+2. **Una invariante rota DETIENE, no promedia.** Una violación es un titular (corrida parada +
+   traza del exploit), jamás un dato más dentro de una tasa de aciertos.
+3. **La simulación conduce el código real.** `Sim/`/`Sim-VE/` jamás se convierten en una
+   segunda copia del mecanismo. Se prueba contra los sistemas reales, no contra mocks.
+4. **Anti-vigilancia primero (rama social).** No añadas legibilidad/scoring por delante de las
+   partes que hacen imposible armar el scoring como arma.
+5. **El FX es irrepresentable (rama VE).** No hay dónde escribir una tasa de cambio en el
+   motor, a propósito. No abras ese hueco «por conveniencia».
 
-If a change tensions one of these, open an issue to discuss *before* writing code.
+Si un cambio tensiona una de estas, abre un issue para discutirlo *antes* de escribir código.
 
-## Workflow
+## Flujo de trabajo
 
-1. Fork and branch from `master` (`feature/short-name` or `fix/short-name`).
-2. Set up the environment:
+1. Haz fork y rama desde `master` (`feature/nombre-corto` o `fix/nombre-corto`).
+2. Prepara el entorno (dos venvs, a propósito — networkx solo es legítimo en Sim):
    ```bash
-   python3 -m venv .venv
-   .venv/bin/pip install pytest hypothesis networkx
+   python3 -m venv .venv-ve  && .venv-ve/bin/pip install pytest hypothesis
+   python3 -m venv .venv-sim && .venv-sim/bin/pip install pytest hypothesis networkx
    ```
-3. Make your change. Keep it scoped and match the surrounding style.
-4. Run the relevant test suite(s) — all must stay green:
+3. Haz el cambio. Acótalo y respeta el estilo circundante.
+4. Corre las suites relevantes — todas deben seguir verdes:
    ```bash
-   (cd B2B && ../.venv/bin/python -m pytest tests -q)
-   (cd C2C && ../.venv/bin/python -m pytest tests -q)
-   (cd Sim && ../.venv/bin/python -m pytest tests -q)
+   (cd B2B    && ../.venv-ve/bin/python  -m pytest -q)   # 125 passed, 3 skipped
+   (cd C2C    && ../.venv-ve/bin/python  -m pytest -q)
+   (cd B2B-VE && ../.venv-ve/bin/python  -m pytest -q)   # 404 passed, 3 skipped
+   (cd C2C-VE && ../.venv-ve/bin/python  -m pytest -q)   # 441 passed
+   (cd Sim    && ../.venv-sim/bin/python -m pytest -q)   # 121 passed
+   (cd Sim-VE && ../.venv-sim/bin/python -m pytest -q)   # 185 passed
    ```
-5. Add tests for new behavior (acceptance / property / golden-set as appropriate).
-6. Open a PR describing *what* changed and *which invariants you checked it against*.
+   Los 3 `skipped` de `B2B*/` son un bloque a propósito (cross-check networkx, ausente en
+   `.venv-ve`): no son regresión y no se «arreglan».
+5. Añade tests para el comportamiento nuevo (aceptación / propiedad / golden, según toque).
+   Si el test es de criterio, verifícalo por mutación: un test que no se ha visto fallar no
+   se sabe si prueba algo.
+6. Abre un PR diciendo *qué* cambió y *contra qué invariantes lo verificaste*.
 
-## Commit messages
+## Mensajes de commit
 
-Short imperative subject; body explains the "why." Reference the relevant brief section or
-spec AC where it helps (e.g. `brief §10 step 1`, `AC-L3`).
+Asunto corto en imperativo; el cuerpo explica el «porqué». Referencia la sección del brief o
+el AC de la spec cuando ayude (p. ej. `brief §10 paso 1`, `AC-L3`, `AC-d1.7`).
 
-## Reporting issues
+## Reportar problemas
 
-For bugs, include a minimal reproduction and which sub-project (`B2B` / `C2C` / `Sim`).
-For a suspected invariant violation, include the exploit trace — that's the most valuable
-kind of report here.
+Para bugs, incluye una reproducción mínima y el sub-proyecto (`B2B` / `C2C` / `Sim` / árbol
+`-VE`). Para una sospecha de violación de invariante, incluye la traza del exploit — es el
+reporte más valioso que existe aquí.
 
-## Licensing of contributions
+## Licencia de las contribuciones
 
-By submitting a contribution you agree it is licensed under this project's terms:
-**GPLv3** for code and **CC BY-SA 4.0** for documentation (see [`LICENSE.md`](LICENSE.md)).
+Al enviar una contribución aceptas que se licencia bajo los términos del proyecto:
+**GPLv3** para código y **CC BY-SA 4.0** para documentación (ver [`LICENSE.md`](LICENSE.md)).

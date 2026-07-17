@@ -5,7 +5,8 @@ from random import Random
 from engine.policy import RulePolicy
 from engine.types import Proposal
 from .config import CellView, FirmState
-from .proposals import PauseCell, RequestClearing, ResumeCell, SanctionStep, Settle, Trade
+from .proposals import (PauseCell, PuentePausar, PuenteReanudar, RequestClearing,
+                        ResumeCell, SanctionStep, Settle, StatementProbe, Trade)
 
 
 class Circulator(RulePolicy):
@@ -122,4 +123,35 @@ class CircuitBreaker(RulePolicy):
         if gross_open > self._velocity_max * 2:
             self._ticks_since_pause = 0
             return PauseCell()
+        return None
+
+
+class Auditor(RulePolicy):
+    """Harness role (TS.2): produces the observable material the VE oracles judge.
+
+    - A StatementProbe on a rotating member each `cadence` ticks (visibilidad_saldos needs
+      REAL scoped statements in the trace, not the world's own views).
+    - One puente_pausar/puente_reanudar cycle early in the round (puerta_humana_ops_nuevas
+      needs the VE "ops nuevas" exercised — I-VE7: the pause does not stop internal credit,
+      so the rest of the campaign is unaffected).
+    Anti-vacuity is the point (TS.1's M2 lesson): an oracle with no material is green blind.
+    """
+
+    def __init__(self, member_ids: tuple[str, ...], cadence: int = 4):
+        self._members = tuple(sorted(member_ids))
+        self._cadence = cadence
+        self._puente_state = 0  # 0 = not yet paused, 1 = paused, 2 = cycle done
+
+    def act(self, view: "CellView", rng: Random) -> Proposal | None:
+        if self._puente_state == 0 and view.tick >= 1:
+            self._puente_state = 1
+            return PuentePausar()
+        if self._puente_state == 1:
+            self._puente_state = 2
+            return PuenteReanudar()
+        if len(self._members) >= 2 and view.tick % self._cadence == 0:
+            i = (view.tick // self._cadence) % len(self._members)
+            member = self._members[i]
+            foreign = self._members[(i + 1) % len(self._members)]
+            return StatementProbe(member_id=member, foreign_id=foreign)
         return None

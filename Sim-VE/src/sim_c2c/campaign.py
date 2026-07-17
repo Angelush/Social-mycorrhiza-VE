@@ -23,6 +23,7 @@ from .policies_adversarial import (
 )
 from .researcher import C2CResearcher
 from .track_a import C2CTrackA
+from .track_a_ve import C2CTrackAComposite
 from .track_b import C2CTrackB
 from .world import C2CWorld
 
@@ -135,6 +136,6 @@ def build_campaign(
         researcher=C2CResearcher(),
         build_world=build_world,
         ticks_for=ticks_for,
-        track_a=C2CTrackA(),
+        track_a=C2CTrackAComposite(C2CTrackA()),  # TS.2: VE oracle also halts
         track_b=C2CTrackB(),
     )

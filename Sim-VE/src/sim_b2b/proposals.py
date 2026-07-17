@@ -53,3 +53,24 @@ class RegisterMember(Proposal):
 class NeedDescription(Proposal):
     member_id: str
     text: str
+
+
+# ---- TS.2: VE observability proposals (harness auditor role) ----
+@dataclass(frozen=True)
+class StatementProbe(Proposal):
+    """Ask the world to call the REAL member_statement under the three scopes and record
+    the outputs verbatim (ScopedStatements) — material for the visibilidad_saldos oracle."""
+    member_id: str
+    foreign_id: str      # a DIFFERENT member: the cross `miembro` attempt that must be rejected
+
+
+@dataclass(frozen=True)
+class PuentePausar(Proposal):
+    # -> puente_pausar (D8): a gated VE op, material for puerta_humana_ops_nuevas
+    pass
+
+
+@dataclass(frozen=True)
+class PuenteReanudar(Proposal):
+    # -> puente_reanudar (D8)
+    pass

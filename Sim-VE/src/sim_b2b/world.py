@@ -12,11 +12,14 @@ from .config import CellView, FirmState
 from .proposals import (
     NeedDescription,
     PauseCell,
+    PuentePausar,
+    PuenteReanudar,
     RegisterMember,
     RequestClearing,
     ResumeCell,
     SanctionStep,
     Settle,
+    StatementProbe,
     Trade,
 )
 
@@ -24,6 +27,17 @@ from .proposals import (
 @dataclasses.dataclass(frozen=True)
 class Rejected:
     reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class ScopedStatements:
+    # TS.2: the REAL member_statement's outputs under the three scopes, recorded verbatim
+    # (or a Rejected wrapping the real raise). `cruce_ajeno` is the `miembro`-scope attempt
+    # with a FOREIGN solicitante — the D3 contract says the real ledger must reject it.
+    member_id: str
+    publico: object
+    miembro: object
+    cruce_ajeno: object
 
 
 @dataclasses.dataclass(frozen=True)
@@ -57,6 +71,7 @@ class B2BWorld(World):
             "__clearing_scheduler__",
             "__compliance_officer__",
             "__circuit_breaker__",
+            "__auditor__",
         }:
             return CellView(
                 member_ids=tuple(self.neighbors),
@@ -128,6 +143,26 @@ class B2BWorld(World):
                     ratified_by=proposal.ratified_by,
                     ts=self.ts(),
                 )
+        elif isinstance(proposal, StatementProbe):
+            # NOT wrapped in `call()`: each scope's outcome is recorded separately, verbatim.
+            def probe(scope, solicitante=None):
+                try:
+                    return self.sut_adapter.member_statement(
+                        proposal.member_id, scope, solicitante=solicitante)
+                except ValueError as exc:
+                    return Rejected(reason=str(exc))
+            return ScopedStatements(
+                member_id=proposal.member_id,
+                publico=probe("publico"),
+                miembro=probe("miembro", solicitante=proposal.member_id),
+                cruce_ajeno=probe("miembro", solicitante=proposal.foreign_id),
+            )
+        elif isinstance(proposal, PuentePausar):
+            def call():
+                return self.sut_adapter.puente_pausar(ratified_by="harness-comite", ts=self.ts())
+        elif isinstance(proposal, PuenteReanudar):
+            def call():
+                return self.sut_adapter.puente_reanudar(ratified_by="harness-comite", ts=self.ts())
         elif isinstance(proposal, NeedDescription):
             return None
         else:

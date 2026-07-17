@@ -10,10 +10,12 @@ from engine.types import RangeBound, SearchSpace, TraceEvent
 from .adapter import B2BAdapter
 from .config import RoundConfig
 from .policies_adversarial import CellLeaker, Defrauder, SybilHopper, VelocityAttacker
-from .policies_core import Circulator, CircuitBreaker, ClearingScheduler, ComplianceOfficer, Hoarder, Wallflower
+from .policies_core import (Auditor, Circulator, CircuitBreaker, ClearingScheduler,
+                            ComplianceOfficer, Hoarder, Wallflower)
 from .researcher import B2BResearcher
 from .topology import generate_trade_graph
 from .track_a import B2BTrackA
+from .track_a_ve import B2BTrackAComposite
 from .track_b import B2BTrackB
 from .world import B2BWorld
 
@@ -68,6 +70,7 @@ def _build_actors(
     actors["__clearing_scheduler__"] = ClearingScheduler(cadence_ticks=cfg.clearing_cadence)
     actors["__compliance_officer__"] = ComplianceOfficer(warn_threshold_cents=int(typical_credit_min * 0.8))
     actors["__circuit_breaker__"] = CircuitBreaker(velocity_max_cents=cfg.velocity_max_cents)
+    actors["__auditor__"] = Auditor(member_ids=tuple(neighbors))
     return actors
 
 
@@ -137,7 +140,9 @@ def build_campaign(
     def ticks_for(round_cfg: Mapping[str, object]) -> int:
         return int(round_cfg["T"])
 
-    track_a = B2BTrackA(velocity_window_s=cfg.velocity_window_s, velocity_max_cents=cfg.velocity_max_cents)
+    # TS.2: composite = inherited oracles + the VE ones; a VE violation also halts.
+    track_a = B2BTrackAComposite(B2BTrackA(
+        velocity_window_s=cfg.velocity_window_s, velocity_max_cents=cfg.velocity_max_cents))
     track_b = B2BTrackB(known_bounds=known_bounds)
     researcher = B2BResearcher()
     budget = Budget(max_rounds=max_rounds)

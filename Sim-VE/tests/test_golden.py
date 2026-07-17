@@ -17,7 +17,10 @@ B2B_ROOT = Path(__file__).resolve().parent.parent.parent / "B2B-VE"
 # `moneda`/`sal_seudonimo` to create_cell params, which enter the journal's config/trace hash BY
 # CONSTRUCTION. It was verified before re-freezing that the three ECONOMIC numbers below are
 # byte-identical to the upstream frozen values — the only delta is the declared wire change.
-_FROZEN_ENTRY_HASH = "9ff674fc3b89ee06e8a072f096a04d0febcdb3b2e67d22c15852b9be1a261d64"
+# TS.2: re-frozen again (was 9ff674fc…a261d64): the integrity report now carries the three VE
+# oracles and the trace carries the auditor's probes + puente cycle, both BY CONSTRUCTION.
+# Economic numbers verified byte-identical before re-freezing, same discipline.
+_FROZEN_ENTRY_HASH = "9b68b654302f38f6f3eafc93d959a516706c08caeba13b327dfd914a03c936d5"
 _FROZEN_CLEARING_ONLY_PCT = 42.5
 _FROZEN_COMBINED_PCT = 64.62585034013605
 _FROZEN_GINI = 0.23529411764705882

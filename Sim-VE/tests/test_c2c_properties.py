@@ -91,7 +91,8 @@ def test_gc1_golden_campaign_shape():
                        "cascade_damping_ratio", "bootstrapping_cost"}
     assert set(result.history[0].integrity_report.results) == {
         "no_person_scalar", "no_market_leak", "asker_relative",
-        "forgetting", "consent_privacy", "anti_cascade"}
+        "forgetting", "consent_privacy", "anti_cascade",
+        "moneda_unica_por_campana"}  # TS.2: the VE oracle rides the same campaign
 
 
 def test_window_bucket_matches_stigmergy_definition():

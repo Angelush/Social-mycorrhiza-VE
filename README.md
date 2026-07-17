@@ -19,13 +19,19 @@ La disciplina heredada no se negocia:
 
 ---
 
-## Las tres partes
+## Las tres partes (y sus árboles VE)
 
-| Directorio | Qué es | Estado |
+Cada pieza vive dos veces: el árbol heredado (referencia intacta, se sincroniza con upstream)
+y su fork VE terminado al lado.
+
+| Heredado | Fork VE | Qué es |
 |---|---|---|
-| [`B2B/`](B2B/) | **Crédito mutuo con clearing multilateral** entre empresas — obligaciones netas SIN banco, sin token, sin cadena en la ruta de liquidación. Por adaptar: USD como unidad de cuenta, pista VES con expiración, ledger hash-encadenado, visibilidad restringida (anexo §8) | ✅ heredado, 128/128 tests · 🔜 adaptación VE (Fase 2) |
-| [`C2C/`](C2C/) | **Protocolo social** para cooperar a través de las diferencias, construido para que lo que *no puede volverse un score de vigilancia* venga primero. Por adaptar: castellano total, doble moneda USD/VES sin conversión, tres modos de calibración con trinquete | ✅ heredado, 293/293 tests · 🔜 adaptación VE (Fase 1) |
-| [`Sim/`](Sim/) | **Harness de simulación** que maneja el código REAL B2B y C2C con poblaciones de actores buenos/neutros/malos — driver y oráculo, jamás una segunda copia del mecanismo | ✅ heredado, 121/121 tests · 🔜 adaptación VE (Fase 3) |
+| [`B2B/`](B2B/) — 125+3 tests | [`B2B-VE/`](B2B-VE/) — **404+3 tests** (Fase 2 ✅) | **Crédito mutuo con clearing multilateral** entre empresas — obligaciones netas SIN banco, sin token, sin cadena en la ruta de liquidación. El fork añade: USD como unidad de cuenta con FX irrepresentable, pista VES con expiración, ledger hash-encadenado, visibilidad restringida, multisig, pausa del puente, salida con saldo (deltas D1–D10, anexo §8) |
+| [`C2C/`](C2C/) — 293 tests | [`C2C-VE/`](C2C-VE/) — **441 tests** (Fase 1 ✅) | **Protocolo social** para cooperar a través de las diferencias, construido para que lo que *no puede volverse un score de vigilancia* venga primero. El fork añade: castellano total, firewall bilingüe por tokens, doble moneda USD/VES sin conversión, tres modos de calibración con trinquete asimétrico (áreas §A–§I) |
+| [`Sim/`](Sim/) — 121 tests | [`Sim-VE/`](Sim-VE/) — **185 tests** (Fase 3 ✅) | **Harness de simulación** que maneja el código REAL B2B y C2C con poblaciones de actores buenos/neutros/malos — driver y oráculo, jamás una segunda copia del mecanismo. El fork añade: adaptadores a los contratos VE, oráculos Track-A nuevos, controles negativos silenciosos y campañas descriptivas VE |
+
+Los 3 tests `skipped` de `B2B*/` son un bloque a propósito (cross-check networkx, ausente en
+`.venv-ve`): no son regresión.
 
 A diferencia del repo original publicado, **este fork contiene los tres árboles completos**
 (el upstream publicó `B2B/` y `Sim/` como punteros de submódulo rotos; aquí son archivos
@@ -39,8 +45,10 @@ regulares y las tres suites corren de un clon limpio).
 | [`B2B/micorriza-b2b-venezuela-adaptacion.md`](B2B/micorriza-b2b-venezuela-adaptacion.md) | La auditoría decisión por decisión del sesgo UE (qué se mantiene, qué se invierte), el contexto operativo venezolano verificado (jul-2026), la arquitectura corregida y los 10 deltas accionables |
 | [`workflows/micorriza-ve/`](workflows/micorriza-ve/) | **La hoja de ruta**: paquete de especificación completo (intención, contexto, constraints con porqués, grafo de tareas por fases, criterios de aceptación, modelo de fallos, auditoría del lazo) |
 
-**Estado del build:** Fase 0 (fundación) ✅ — Fases 1–3 (C2C-VE → B2B-VE → Sim-VE) por
-ejecutar según [`workflows/micorriza-ve/tasks.md`](workflows/micorriza-ve/tasks.md).
+**Estado del build:** Fases 0–3 ✅ (fundación → C2C-VE → B2B-VE → Sim-VE, cerradas
+2026-07-13 → 2026-07-17). Quedan solo las tareas continuas (verificaciones fechadas, sync
+upstream) — ver [`workflows/micorriza-ve/tasks.md`](workflows/micorriza-ve/tasks.md). Las
+Etapas de despliegue de la red real (anexo §7) son trabajo humano y empiezan ahora.
 
 ## Principios de diseño (los heredados + los del contexto VE)
 
@@ -63,17 +71,21 @@ ejecutar según [`workflows/micorriza-ve/tasks.md`](workflows/micorriza-ve/tasks
 
 ## Inicio rápido
 
-Cada subproyecto es un paquete Python autocontenido; un solo virtualenv en la raíz.
+Cada subproyecto es un paquete Python autocontenido. Dos virtualenvs en la raíz, a propósito:
+`networkx` solo es legítimo en los harness de simulación.
 
 ```bash
 # preparación (una vez)
-python3 -m venv .venv
-.venv/bin/pip install pytest hypothesis networkx
+python3 -m venv .venv-ve  && .venv-ve/bin/pip install pytest hypothesis
+python3 -m venv .venv-sim && .venv-sim/bin/pip install pytest hypothesis networkx
 
-# las tres suites
-(cd B2B && ../.venv/bin/python -m pytest tests -q)   # 128 tests
-(cd C2C && ../.venv/bin/python -m pytest tests -q)   # 293 tests
-(cd Sim && ../.venv/bin/python -m pytest tests -q)   # 121 tests
+# las seis suites
+(cd B2B    && ../.venv-ve/bin/python  -m pytest -q)   # 125 passed, 3 skipped
+(cd C2C    && ../.venv-ve/bin/python  -m pytest -q)   # 293 passed
+(cd B2B-VE && ../.venv-ve/bin/python  -m pytest -q)   # 404 passed, 3 skipped
+(cd C2C-VE && ../.venv-ve/bin/python  -m pytest -q)   # 441 passed
+(cd Sim    && ../.venv-sim/bin/python -m pytest -q)   # 121 passed
+(cd Sim-VE && ../.venv-sim/bin/python -m pytest -q)   # 185 passed
 ```
 
 ## Relación con el upstream
@@ -94,6 +106,6 @@ Ambas copyleft con términos de compartir-igual.
 
 ## Contribuir
 
-Ver [`CONTRIBUTING.md`](CONTRIBUTING.md) (castellanización pendiente — tarea TP.4). Al
+Ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Al
 contribuir aceptas que tu código se licencia bajo GPLv3 y tu documentación bajo CC BY-SA 4.0.
 Idioma de trabajo del fork: **castellano**.

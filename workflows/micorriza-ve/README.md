@@ -47,10 +47,13 @@ conversión implícita USD/VES/USDT o una conservación rota por resto mal repar
 
 - [x] Fase 0 — fundación del fork (repo propio, árboles B2B/Sim reparados, 542 tests verdes,
       publicado)
-- [ ] Fase 1 — C2C-VE (áreas a→f del prompt, TA.0–TA.8)
-- [ ] Fase 2 — B2B-VE (deltas 1–10, TB.0–TB.9; requiere E2 resuelta)
-- [ ] Fase 3 — Sim-VE (adaptadores + oráculos nuevos + control negativo, TS.1–TS.4)
-- [ ] Continuas — verificaciones fechadas, sync upstream, meta-docs (TP.1–TP.4)
+- [x] Fase 1 — C2C-VE (áreas a→f del prompt, TA.0–TA.8) — cerrada en `c83c033`, 441 verdes
+- [x] Fase 2 — B2B-VE (deltas 1–10, TB.0–TB.9) — cerrada en `9034300` con gate humano AC-9
+      aprobado (2026-07-17), 404 verdes + 3 skipped deliberados
+- [x] Fase 3 — Sim-VE (adaptadores + oráculos nuevos + control negativo, TS.1–TS.4) —
+      cerrada en `526bdb0`, 185 verdes
+- [ ] Continuas — verificaciones fechadas (TP.1) y sync upstream (TP.2) siguen abiertas por
+      diseño; TP.3 (E2) y TP.4 (meta-docs) ✅
 
 ## Qué hay en este bundle
 

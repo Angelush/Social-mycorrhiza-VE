@@ -74,6 +74,23 @@ def _build_actors(
     return actors
 
 
+def params_de_celula(cfg: "RoundConfig") -> dict:
+    """The create_cell params a campaign declares — single source (campaign AND tests).
+
+    D1 biconditional: `expira_en_dias` only forwarded when declared. The REAL ledger enforces
+    mandatory-iff-VES; the harness neither repairs nor completes a confused config (AC-s4.5).
+    """
+    return {
+        "moneda": cfg.moneda,           # D1: mono-moneda por célula, sin default
+        "sal_seudonimo": "sim-ve-sal",  # D3: sal obligatoria en toda célula
+        **({"expira_en_dias": cfg.expira_en_dias} if cfg.expira_en_dias is not None else {}),
+        "neg_line_bp": cfg.neg_line_bp,
+        "pos_line_bp": cfg.pos_line_bp,
+        "velocity_window_s": cfg.velocity_window_s,
+        "velocity_max_cents": cfg.velocity_max_cents,
+    }
+
+
 def build_campaign(
     cfg: RoundConfig,
     b2b_root: str | Path,
@@ -81,22 +98,15 @@ def build_campaign(
     search_space: SearchSpace | None = None,
 ) -> CampaignResult:
     adapter = B2BAdapter(b2b_root)
-    adapter.create_cell(
-        "cell-1",
-        {
-            "moneda": "USD",            # D1: mono-moneda por célula, sin default
-            "sal_seudonimo": "sim-ve-sal",  # D3: sal obligatoria en toda célula
-            "neg_line_bp": cfg.neg_line_bp,
-            "pos_line_bp": cfg.pos_line_bp,
-            "velocity_window_s": cfg.velocity_window_s,
-            "velocity_max_cents": cfg.velocity_max_cents,
-        },
-        ratified_by="ops",
-        ts=0,
-    )
+    cell_event = adapter.create_cell("cell-1", params_de_celula(cfg), ratified_by="ops", ts=0)
     neighbors = generate_trade_graph(cfg.n_firms, seed=cfg.seed)
 
-    setup_events: list[TraceEvent] = []
+    setup_events: list[TraceEvent] = [
+        # TS.4: cell_created leads the trace — the fx oracle reads the cell's moneda from the
+        # TRACE, so its proposal-moneda cross-check is armed inside campaigns (and AC-s4.3
+        # judges the trace, not the config).
+        TraceEvent(tick=-1, actor_id="__setup__", proposal=None, result=cell_event)
+    ]
     known_bounds: dict[str, dict[str, int]] = {}
     for fid in neighbors:
         adapter.add_member(

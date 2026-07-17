@@ -18,6 +18,12 @@ class RoundConfig:
     velocity_max_cents: int
     credit_crunch: bool
     seed: int
+    # --- TS.4 (VE cell knobs) ---
+    # The campaign passes these to the REAL create_cell verbatim; the biconditional
+    # (expira_en_dias mandatory iff VES, D1) is NOT re-implemented here — the ledger is the
+    # one that rejects a confused config (N11: never a second copy of the mechanism).
+    moneda: str = "USD"
+    expira_en_dias: int | None = None
 
 @dataclass(frozen=True)
 class FirmState:

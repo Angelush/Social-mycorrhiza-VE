@@ -20,7 +20,10 @@ B2B_ROOT = Path(__file__).resolve().parent.parent.parent / "B2B-VE"
 # TS.2: re-frozen again (was 9ff674fc…a261d64): the integrity report now carries the three VE
 # oracles and the trace carries the auditor's probes + puente cycle, both BY CONSTRUCTION.
 # Economic numbers verified byte-identical before re-freezing, same discipline.
-_FROZEN_ENTRY_HASH = "9b68b654302f38f6f3eafc93d959a516706c08caeba13b327dfd914a03c936d5"
+# TS.4: re-frozen again (was 9b68b654…3c936d5): cell_created now leads every round's trace
+# (arms the fx oracle's proposal-moneda cross-check inside campaigns). Economics verified
+# byte-identical before re-freezing, same discipline.
+_FROZEN_ENTRY_HASH = "d783c1bc6266506417cc99162dc616759ef87c38c91da9c61a20190b1ed17cda"
 _FROZEN_CLEARING_ONLY_PCT = 42.5
 _FROZEN_COMBINED_PCT = 64.62585034013605
 _FROZEN_GINI = 0.23529411764705882

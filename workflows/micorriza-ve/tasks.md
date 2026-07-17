@@ -54,6 +54,10 @@
 
 ## Fase 3 — Sim-VE (tras Fases 1 y 2)
 
+> **FASE 3 CERRADA 2026-07-17** — TS.1 `1b57e15` (126) → TS.2 `f780894` (149) → TS.3
+> `a3a7d53` (166) → TS.4 `526bdb0` (**185 verdes**). Árbol de trabajo `Sim-VE/` (venv propio
+> `.venv-sim/`, networkx solo ahí); sub-bundle de specs en `Sim/workflows/micorriza-ve/`.
+
 | ID | Tarea | Deps | Tier | Verificación |
 |---|---|---|---|---|
 | TS.1 | Adaptadores del harness a los contratos VE (nombres castellanos, envelope con `modo`); el SUT real se importa, jamás se reimplementa (N11) | TA.8, TB.9 | alto | adaptador pass-through; suite Sim verde |
@@ -66,9 +70,9 @@
 | ID | Tarea | Regla |
 |---|---|---|
 | TP.1 | `docs/verificaciones/AAAA-MM-DD-*.md` — re-verificación fechada de sanciones/fiscal/cripto ANTES de D4/D8 y de toda Etapa de despliegue | M9; sin datos personales (N8). **Tensión M9/D8 zanjada por el humano el 2026-07-15:** `tasks.md` ponía D8 en TB.6 con deps solo `TB.3` y TP.1 lo exigía tras M9 — spec contra spec, así que no la zanjaba el ejecutor. **D8 sale a TB.6b con dep `M9` explícita**; TB.6 queda solo-D6 y arranca sin M9 (emigrar no es un evento sancionador). Ver `B2B/workflows/micorriza-ve/d6-d8-bordes/DESIGN-TB6.md` §0. |
-| TP.2 | Sincronización con upstream: `git fetch upstream && git merge` documentado; divergencias al log de conflictos de `context.md` | E4: el fork no escribe upstream |
+| TP.2 | Sincronización con upstream: `git fetch upstream && git merge` documentado; divergencias al log de conflictos de `context.md` | E4: el fork no escribe upstream. **Primer sync ejecutado 2026-07-17** (merge `94605fe`, contenido byte-idéntico, log en `context.md` §4) — la fila sigue abierta: es continua |
 | TP.3 | Resolver E2 (alcance castellanización B2B) — bloquea TB.1 | humano |
-| TP.4 | Castellanizar meta-docs heredados (CONTRIBUTING, plantillas .github) | medio; no bloquea Fases 1–3 |
+| TP.4 | Castellanizar meta-docs heredados (CONTRIBUTING, plantillas .github) | medio; no bloquea Fases 1–3. ✅ **2026-07-17** (commit `1d1fd7c`): 5 archivos castellanizados y actualizados al fork (venvs, 6 suites, sub-proyectos -VE) |
 
 ## Presupuesto de fiabilidad
 

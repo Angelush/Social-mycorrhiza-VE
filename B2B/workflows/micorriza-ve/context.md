@@ -217,3 +217,11 @@ mergear:
 | `moneda` obligatoria en `params` | idem | sí |
 | `ratification_kinds` += `member_exited`, `bridge_paused`, `bridge_resumed` | idem | sí |
 | Taxonomía FX rechazada (D1) | nuevo | aditivo |
+
+**Sync ejecutado — 2026-07-17 (merge `94605fe`):** `git fetch upstream` trajo `38a5974` +
+`7eae267` (upstream publicó SU versión de vendorizar `B2B/`/`Sim/` y reconciliar el pin — lo
+que el fork ya había hecho en T0.2/T0.3). **Contenido byte-idéntico**: `git diff HEAD
+upstream/master -- {B2B,Sim,C2C}/{src,tests}` VACÍO antes del merge. Único conflicto:
+`README.md` (redacción inglesa upstream vs la castellana del fork, que es superconjunto) →
+resuelto conservando el del fork. Las 5 suites verdes tras el merge (Sim-VE 185 · Sim 121 ·
+C2C-VE 441 · B2B-VE 404+3 · B2B 125+3).
